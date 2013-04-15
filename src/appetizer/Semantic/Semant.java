@@ -175,7 +175,7 @@ public class Semant {
 		RECORD r = null;
 		Parameters tmp = p;
 		while (tmp != null) {
-			PlainDeclaration pd = (PlainDeclaration)p.decl1;
+			PlainDeclaration pd = (PlainDeclaration)tmp.decl1;
 			Type tp = checkTypeSp(pd.typeSpecifier); //para type
 			tp = checkDeclarator((Declarator)pd.decl, tp);
 
@@ -190,7 +190,7 @@ public class Semant {
 		//array check;
 		if (dt.constantExpressionStar != null) {
 			ConstantExpressionStar tmp = dt.constantExpressionStar;
-			while (tmp.constantExpressionStar != null) {
+			while (tmp != null) {
 				if (!(checkConstantExpression(tmp.constantExpression) instanceof INT)) {
 					error("array index is not integer!");
 					return tp;
@@ -345,11 +345,13 @@ public class Semant {
 			return true;
 		if (ex.postfix instanceof NULLArg)
 			return false;
-		Postfix p = (Postfix)ex.postfix;
-		if (p == null)
-			return true;
-		if (p.op == Postfix.Type.DEC || p.op == Postfix.Type.INC)
-			return false;
+		if (ex.postfix instanceof Postfix) {
+			Postfix p = (Postfix)ex.postfix;
+			if (p == null)
+				return true;
+			if (p.op == Postfix.Type.DEC || p.op == Postfix.Type.INC)
+				return false;
+		}
 		return islvalue(ex.postfixStar);
 	}
 	public boolean islvalue(CastExpression ex) {
