@@ -1,0 +1,131 @@
+int
+<ID, main>
+(
+)
+{
+int
+<ID, a>
+;
+int
+<ID, b>
+;
+int
+<ID, c>
+;
+int
+<ID, max>
+;
+<ID, a>
+=
+<DecInteger, 10>
+;
+<ID, b>
+=
+<DecInteger, 10>
+*
+<DecInteger, 3>
+;
+<ID, c>
+=
+<DecInteger, 10>
++
+<DecInteger, 10>
+;
+<ID, max>
+=
+<ID, a>
+;
+if
+(
+<ID, b>
+>
+<ID, max>
+)
+{
+<ID, max>
+=
+<ID, b>
+;
+}
+if
+(
+<ID, c>
+>
+<ID, max>
+)
+{
+<ID, max>
+=
+<ID, c>
+;
+}
+return
+<ID, max>
+;
+}
+{"sym":{"name":"main"},"body":{"decls":{"head":{"sym":{"name":"a"}},"tail":{"head":{"sym":{"name":"b"}},"tail":{"head":{"sym":{"name":"c"}},"tail":{"head":{"sym":{"name":"max"}}}}}},"stmts":{"head":{"left":{"sym":{"name":"a"}},"right":{"value":10},"opType":"ASSIGN"},"tail":{"head":{"left":{"sym":{"name":"b"}},"right":{"left":{"value":10},"right":{"value":3},"opType":"TIMES"},"opType":"ASSIGN"},"tail":{"head":{"left":{"sym":{"name":"c"}},"right":{"left":{"value":10},"right":{"value":10},"opType":"PLUS"},"opType":"ASSIGN"},"tail":{"head":{"left":{"sym":{"name":"max"}},"right":{"sym":{"name":"a"}},"opType":"ASSIGN"},"tail":{"head":{"cond":{"left":{"sym":{"name":"b"}},"right":{"sym":{"name":"max"}},"opType":"GT"},"body":{"stmts":{"head":{"left":{"sym":{"name":"max"}},"right":{"sym":{"name":"b"}},"opType":"ASSIGN"}}}},"tail":{"head":{"cond":{"left":{"sym":{"name":"c"}},"right":{"sym":{"name":"max"}},"opType":"GT"},"body":{"stmts":{"head":{"left":{"sym":{"name":"max"}},"right":{"sym":{"name":"c"}},"opType":"ASSIGN"}}}},"tail":{"head":{"expr":{"sym":{"name":"max"}}}}}}}}}}}}
+int
+<ID, main>
+(
+)
+{
+int
+<ID, a>
+;
+int
+<ID, b>
+;
+<ID, a>
+=
+<DecInteger, 0>
+;
+<ID, b>
+=
+<DecInteger, 10>
+;
+{
+int
+<ID, b>
+;
+<ID, b>
+=
+<DecInteger, 20>
+;
+<ID, a>
+=
+<ID, a>
++
+<ID, b>
+;
+}
+return
+<ID, a>
+;
+}
+{"sym":{"name":"main"},"body":{"decls":{"head":{"sym":{"name":"a"}},"tail":{"head":{"sym":{"name":"b"}}}},"stmts":{"head":{"left":{"sym":{"name":"a"}},"right":{"value":0},"opType":"ASSIGN"},"tail":{"head":{"left":{"sym":{"name":"b"}},"right":{"value":10},"opType":"ASSIGN"},"tail":{"head":{"decls":{"head":{"sym":{"name":"b"}}},"stmts":{"head":{"left":{"sym":{"name":"b"}},"right":{"value":20},"opType":"ASSIGN"},"tail":{"head":{"left":{"sym":{"name":"a"}},"right":{"left":{"sym":{"name":"a"}},"right":{"sym":{"name":"b"}},"opType":"PLUS"},"opType":"ASSIGN"}}}},"tail":{"head":{"expr":{"sym":{"name":"a"}}}}}}}}}
+int
+<ID, main>
+(
+)
+{
+int
+<ID, a>
+;
+<ID, a>
+=
+<DecInteger, 10>
+;
+if
+(
+<ID, a>
+>
+<DecInteger, 0>
+)
+return
+<ID, a>
+;
+return
+<DecInteger, 0>
+;
+}
+{"sym":{"name":"main"},"body":{"decls":{"head":{"sym":{"name":"a"}}},"stmts":{"head":{"left":{"sym":{"name":"a"}},"right":{"value":10},"opType":"ASSIGN"},"tail":{"head":{"cond":{"left":{"sym":{"name":"a"}},"right":{"value":0},"opType":"GT"},"body":{"expr":{"sym":{"name":"a"}}}},"tail":{"head":{"expr":{"value":0}}}}}}}

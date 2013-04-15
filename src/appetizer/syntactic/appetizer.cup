@@ -1,0 +1,550 @@
+package appetizer.syntactic;
+
+import java.io.InputStream;
+import appetizer.ast.*;
+
+action code {:
+	static appetizer.symbol.Symbol symbol(String s) {
+		return appetizer.symbol.Symbol.symbol(s);
+	}
+:};
+
+parser code {:
+	public void report_error(String message, Object info) {
+		StringBuffer m = new StringBuffer("\tParsing error");
+		if (info instanceof java_cup.runtime.Symbol) {
+			java_cup.runtime.Symbol s = (java_cup.runtime.Symbol) info;
+
+			if (s.left >= 0) {
+				m.append(" in line " + (s.left +1 ));
+				if (s.right >= 0) {
+					m.append(", column " + (s.right + 1));
+				}
+			}
+		}
+		m.append(" : " + message);
+		System.err.println(m);
+	}
+
+	public Parser(InputStream inp) {
+		this(new Yylex(inp));
+	}
+:};
+
+terminal String     TYPEDEF, VOID, CHAR, INT, STRUCT, UNION, IF, ELSE, WHILE, FOR, CONTINUE, BREAK, RETURN, SIZEOF;
+terminal      LPAREN, RPAREN, LBRACE, RBRACE, SEMICOLON, LSQBRA, RSQBRA;
+terminal      DOT, COMMA;
+terminal      NEGATE, NOT;
+terminal			PLUS, MINUS, TIMES, DIVIDE, MOD, OPOR, OPXOR, OPAND;
+terminal      ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, ADD_ASSIGN, SUB_ASSIGN, SHL_ASSIGN, SHR_ASSIGN, AND_ASSIGN, XOR_ASSIGN, OR_ASSIGN;
+terminal			OR, AND, EQ, NE, LT, LE, GT, GE, SHL, SHR, INC, DEC, PTR, ELLIPSIS;
+terminal String   Char, String;
+terminal Integer	NUM;
+terminal String		ID;
+
+
+non terminal Program  program;
+
+non terminal Decl             typedef_name;
+non terminal Declaration      declaration;
+non terminal Declarator       declarator;
+non terminal Declarators      declarators;
+non terminal FunctionDefinition   function_definition;
+non terminal InitDeclarator   init_declarator;
+non terminal InitDeclarators  init_declarators;
+non terminal COMMAInitDeclaratorsStar COMMA_init_declarators_star;
+non terminal Initializer      initializer;
+non terminal Parameters       parameters;
+non terminal PlainDeclaration plain_declaration;
+non terminal PlainDeclarator  plain_declarator;
+non terminal StructOrUnion    struct_or_union;
+non terminal TIMESStar        TIMES_star;
+non terminal TypeSpecifier    type_specifier;
+non terminal TypeSpecifierDeclarators    type_specifier_declarators;
+non terminal DeclarationStar  declaration_star;
+
+non terminal Statements statement, iteration_statement, jump_statement;
+non terminal ExpressionStatement      expression_statement;
+non terminal CompoundStatement        compound_statement;
+non terminal StatementStar            statement_star;
+non terminal SelectionStatement       selection_statement;
+
+non terminal Expressions expression_ques;
+non terminal ConstantExpressionStar constant_expression_star;
+
+non terminal Expressions arguments_ques, constant;
+non terminal Expression expression;
+non terminal AssignmentExpressionStar assignment_expression_star;
+non terminal AssignmentExpression assignment_expression;
+non terminal AssignmentOperator assignment_operator;
+non terminal ConstantExpression constant_expression;
+non terminal LogicalOrExpression logical_or_expression;
+non terminal OrLogicalAndExpressionStar or_logical_and_expression_star;
+non terminal LogicalAndExpression logical_and_expression;
+non terminal AndInclusiveOrExpressionStar and_inclusive_or_expression_star;
+non terminal InclusiveOrExpression inclusive_or_expression;
+non terminal OporExclusiveOrExpressionStar opor_exclusive_or_expression_star;
+non terminal ExclusiveOrExpression exclusive_or_expression;
+non terminal OPXORAndExpressionStar OPXOR_and_expression_star;
+non terminal AndExpression and_expression;
+non terminal OPANDEqualityExpressionStar OPAND_equality_expression_star;
+non terminal EqualityExpression equality_expression;
+non terminal EqualityOperatorRelationalExpressionStar equality_operator_relational_expression_star;
+non terminal EqualityOperator equality_operator;
+non terminal RelationalExpression relational_expression;
+non terminal RelationalOperatorShiftExpressionStar relational_operator_shift_expression_star;
+non terminal RelationalOperator relational_operator;
+non terminal ShiftExpression shift_expression;
+non terminal ShiftOperatorAdditiveExpressionStar shift_operator_additive_expression_star;
+non terminal ShiftOperator shift_operator;
+non terminal AdditiveExpression additive_expression;
+non terminal AdditiveOperatorMultiplicativeExpressionStar additive_operator_multiplicative_expression_star;
+non terminal AdditiveOperator additive_operator;
+non terminal MultiplicativeExpression multiplicative_expression;
+non terminal MultiOperatorCastExpressionStar multiplicative_operator_cast_expression_star;
+non terminal MultiplicativeOperator multiplicative_operator;
+non terminal CastExpression cast_expression;
+non terminal TypeName type_name;
+non terminal UnaryExpressionAll unary_expression;
+non terminal UnaryOperator unary_operator;
+non terminal PostfixExpression postfix_expression;
+non terminal PostfixStar postfix_star;
+non terminal PrimaryExpression primary_expression;
+
+non terminal Expressions postfix;
+non terminal Arguments arguments;
+non terminal COMMAAssignmentExpressionStar COMMA_assignment_expression_star;
+
+precedence right	ASSIGN;
+precedence nonassoc	EQ, NE, GT, LT, GE, LE;
+precedence left		PLUS, MINUS;
+precedence left		TIMES, DIVIDE;
+precedence left  ELSE;
+
+start with program;
+
+program ::= declaration:d
+    {: RESULT = new Program(d, null); :}
+  | function_definition:d
+    {: RESULT = new Program(d, null); :}
+  | declaration:d program:p
+    {: RESULT = new Program(d, p); :}
+  | function_definition:f program:p
+    {: RESULT = new Program(f, p); :}
+  ;
+
+declaration ::= TYPEDEF type_specifier:a declarators:b SEMICOLON
+    {: RESULT = new Declaration(a, b); :}
+  | type_specifier:a init_declarators:b SEMICOLON
+    {: RESULT = new Declaration(a, b); :}
+  | type_specifier:a SEMICOLON
+    {: RESULT = new Declaration(a, null); :}
+  ;
+
+function_definition ::= type_specifier:a plain_declarator:b LPAREN parameters:c RPAREN compound_statement:d
+    {: RESULT = new FunctionDefinition(a, b, c, d); :}
+  | type_specifier:a plain_declarator:b LPAREN RPAREN compound_statement:d
+    {: RESULT = new FunctionDefinition(a, b, null, d); :}
+  ;
+
+parameters ::= plain_declaration:a
+    {: RESULT = new Parameters(a, null); :}
+  | plain_declaration:a COMMA parameters:b
+    {: RESULT = new Parameters(a, b); :}
+  ;
+
+declarators ::= declarator:a
+    {: RESULT = new Declarators(a, null); :}
+  | declarator:a COMMA declarators:b
+    {: RESULT = new Declarators(a, b); :}
+  ;
+
+init_declarators ::= init_declarator:a
+    {: RESULT = new InitDeclarators(a, null); :}
+  | init_declarator:a COMMA init_declarators:b
+    {: RESULT = new InitDeclarators(a, b); :}
+  ;
+COMMA_init_declarators_star ::= {: RESULT = null; :}
+  | COMMA init_declarator:a COMMA_init_declarators_star:b
+    {: RESULT = new COMMAInitDeclaratorsStar(a, b); :}
+  ;
+
+init_declarator ::= declarator:a
+    {: RESULT = new InitDeclarator(a, null); :}
+  | declarator:a ASSIGN initializer:b
+    {: RESULT = new InitDeclarator(a, b); :}
+  ;
+
+initializer ::= assignment_expression:a
+    {: RESULT = new Initializer(a); :}
+  | LBRACE initializer:a COMMA initializer:b RBRACE
+    {: RESULT = new Initializer(a, b); :}
+  ;
+
+type_specifier ::= VOID:a
+    {: RESULT = new TypeSpecifier(symbol("VOID")); :}
+  | CHAR:a
+    {: RESULT = new TypeSpecifier(symbol("CHAR")); :}
+  | INT:a
+    {: RESULT = new TypeSpecifier(symbol("INT")); :}
+/*  | typedef_name:d
+      {: RESULT = new TypeSpecifier(d); :}
+*/
+  | struct_or_union:b ID:a LBRACE type_specifier_declarators:c RBRACE
+    {: RESULT = new TypeSpecifier(b, symbol(a), c); :}
+  | struct_or_union:b LBRACE type_specifier_declarators:c RBRACE
+    {: RESULT = new TypeSpecifier(b, null, c); :}
+  | struct_or_union:b ID:a
+    {: RESULT = new TypeSpecifier(b, symbol(a), null); :}
+  ;
+type_specifier_declarators ::= type_specifier:a declarators:b SEMICOLON
+    {: RESULT = new TypeSpecifierDeclarators(a, b, null); :}
+  | type_specifier:a declarators:b SEMICOLON type_specifier_declarators:c
+    {: RESULT = new TypeSpecifierDeclarators(a, b, c); :}
+  ;
+
+/*
+typedef_name ::= ID:x
+    {: RESULT = symbol(x); :}
+  ;
+*/
+
+struct_or_union ::= STRUCT:a
+    {: RESULT = new StructOrUnion("STRUCT"); :}
+  | UNION:a
+    {: RESULT = new StructOrUnion("UNION"); :}
+  ;
+
+plain_declaration ::= type_specifier:a declarator:b
+    {: RESULT = new PlainDeclaration(a, b); :}
+  ;
+
+declarator ::= plain_declarator:a LPAREN parameters:b RPAREN
+    {: RESULT = new Declarator(a, b); :}
+  | plain_declarator:a LPAREN RPAREN
+    {: RESULT = new Declarator(a); :}
+  | plain_declarator:a constant_expression_star:b
+    {: RESULT = new Declarator(a, b); :}
+  ;
+constant_expression_star ::= {: RESULT = null; :}
+  | LSQBRA constant_expression:a RSQBRA constant_expression_star:b
+    {: RESULT = new ConstantExpressionStar(a, b); :}
+  ;
+
+plain_declarator ::= TIMES_star:a ID:b
+    {: RESULT = new PlainDeclarator(a, symbol(b)); :}
+  ;
+TIMES_star ::= {: RESULT = null; :}
+  | TIMES:a TIMES_star:b
+    {: RESULT = new TIMESStar(symbol("*"), b); :}
+  ;
+
+
+//Statements
+statement ::= expression_statement:a
+    {: RESULT = a; :}
+  | compound_statement:a
+    {: RESULT = a; :}
+  | selection_statement:a
+    {: RESULT = a; :}
+  | iteration_statement:a
+    {: RESULT = a; :}
+  | jump_statement:a
+    {: RESULT = a; :}
+  ;
+
+expression_statement ::= expression_ques:e SEMICOLON
+    {: RESULT = new ExpressionStatement(e); :}
+  ;
+expression_ques ::= {: RESULT = null; :}
+  | expression:e
+    {: RESULT = e; :}
+  ;
+
+compound_statement ::= LBRACE declaration_star:a statement_star:b RBRACE
+    {: RESULT = new CompoundStatement(a, b); :}
+  ;
+declaration_star ::= {: RESULT = null; :}
+  | declaration:a declaration_star:b
+    {: RESULT = new DeclarationStar(a, b); :}
+  ;
+statement_star ::= {: RESULT = null; :}
+  | statement:a statement_star:b
+    {: RESULT = new StatementStar(a, b); :}
+  ;
+
+selection_statement ::= IF LPAREN expression:e RPAREN statement:s
+    {: RESULT = new SelectionStatement(e, s, null); :}
+  | IF LPAREN expression:e RPAREN statement:s1 ELSE statement:s2
+    {:RESULT = new SelectionStatement(e, s1, s2); :}
+  ;
+
+iteration_statement ::= WHILE LPAREN expression:e RPAREN statement:s
+    {: RESULT = new IterationWhileStatement(e, s); :}
+  | FOR LPAREN expression_ques:e1 SEMICOLON expression_ques:e2 SEMICOLON expression_ques:e3 RPAREN statement:s
+    {: RESULT = new IterationForStatement(e1, e2, e3, s); :}
+  ;
+
+jump_statement ::= CONTINUE SEMICOLON
+    {: RESULT = new JumpContinueStatement(); :}
+  | BREAK SEMICOLON
+    {: RESULT = new JumpBreakStatement(); :}
+  | RETURN expression_ques:e SEMICOLON
+    {: RESULT = new JumpReturnStatement(e); :}
+  ;
+
+
+//Expressions
+expression ::= assignment_expression:a
+    {: RESULT = new Expression(a, null); :}
+  | assignment_expression:a COMMA expression:b
+    {: RESULT = new Expression(a, b); :}
+  ;
+/*
+assignment_expression_star ::= {: RESULT = null; :}
+  | COMMA assignment_expression:a assignment_expression_star:b
+     {: RESULT = new AssignmentExpressionStar(a, b); :}
+  ;
+*/
+
+assignment_expression ::= logical_or_expression:a
+    {: RESULT = a; :}
+  | unary_expression:b assignment_operator:c assignment_expression:d
+    {: RESULT = new AssignmentExpression(b, c, d); :}
+  ;
+
+assignment_operator ::= ASSIGN
+    {: RESULT = new AssignmentOperator(AssignmentOperator.Type.ASSIGN); :}
+  | MUL_ASSIGN
+    {: RESULT = new AssignmentOperator(AssignmentOperator.Type.MUL_ASSIGN); :}
+  | DIV_ASSIGN
+    {: RESULT = new AssignmentOperator(AssignmentOperator.Type.DIV_ASSIGN); :}
+  | MOD_ASSIGN
+    {: RESULT = new AssignmentOperator(AssignmentOperator.Type.MOD_ASSIGN); :}
+  | ADD_ASSIGN
+    {: RESULT = new AssignmentOperator(AssignmentOperator.Type.ADD_ASSIGN); :}
+  | SUB_ASSIGN
+    {: RESULT = new AssignmentOperator(AssignmentOperator.Type.SUB_ASSIGN); :}
+  | SHL_ASSIGN
+    {: RESULT = new AssignmentOperator(AssignmentOperator.Type.SHL_ASSIGN); :}
+  | SHR_ASSIGN
+    {: RESULT = new AssignmentOperator(AssignmentOperator.Type.SHR_ASSIGN); :}
+  | AND_ASSIGN
+    {: RESULT = new AssignmentOperator(AssignmentOperator.Type.AND_ASSIGN); :}
+  | XOR_ASSIGN
+    {: RESULT = new AssignmentOperator(AssignmentOperator.Type.XOR_ASSIGN); :}
+  | OR_ASSIGN
+    {: RESULT = new AssignmentOperator(AssignmentOperator.Type.OR_ASSIGN); :}
+  ;
+
+constant_expression ::= logical_or_expression:e
+    {:RESULT = new ConstantExpression(e); :}
+  ;
+
+logical_or_expression ::= logical_and_expression:a or_logical_and_expression_star:b
+    {: RESULT = new LogicalOrExpression(a, b); :}
+  ;
+or_logical_and_expression_star ::= {: RESULT = null; :}
+  | OR logical_and_expression:a or_logical_and_expression_star:b
+    {: RESULT = new OrLogicalAndExpressionStar(a, b); :}
+  ;
+
+logical_and_expression ::= inclusive_or_expression:a and_inclusive_or_expression_star:b
+    {: RESULT = new LogicalAndExpression(a, b); :}
+  ;
+and_inclusive_or_expression_star ::= {: RESULT = null; :}
+  | AND inclusive_or_expression:a and_inclusive_or_expression_star:b
+    {: RESULT = new AndInclusiveOrExpressionStar(a, b); :}
+  ;
+
+inclusive_or_expression ::= exclusive_or_expression:a opor_exclusive_or_expression_star:b
+    {: RESULT = new InclusiveOrExpression(a, b); :}
+  ;
+opor_exclusive_or_expression_star ::= {: RESULT = null; :}
+  | OPOR exclusive_or_expression:a opor_exclusive_or_expression_star:b
+    {: RESULT = new OporExclusiveOrExpressionStar(a, b); :}
+  ;
+
+exclusive_or_expression ::= and_expression:a OPXOR_and_expression_star:b
+    {: RESULT = new ExclusiveOrExpression(a, b); :}
+  ;
+OPXOR_and_expression_star ::= {: RESULT = null; :}
+  | OPXOR and_expression:a OPXOR_and_expression_star:b
+    {: RESULT = new OPXORAndExpressionStar(a, b); :}
+  ;
+
+and_expression ::= equality_expression:a OPAND_equality_expression_star:b
+    {: RESULT = new AndExpression(a, b); :}
+  ;
+OPAND_equality_expression_star ::= {: RESULT = null; :}
+  | OPAND equality_expression:a OPAND_equality_expression_star:b
+    {: RESULT = new OPANDEqualityExpressionStar(a, b); :}
+  ;
+
+equality_expression ::= relational_expression:a equality_operator_relational_expression_star:b
+    {: RESULT = new EqualityExpression(a, b); :}
+  ;
+equality_operator_relational_expression_star ::= {: RESULT = null; :}
+  | equality_operator:op relational_expression:a equality_operator_relational_expression_star:b
+    {: RESULT = new EqualityOperatorRelationalExpressionStar(op, a, b); :}
+  ;
+
+equality_operator ::= EQ
+    {: RESULT = new EqualityOperator(EqualityOperator.Type.EQ); :}
+  | NE
+    {: RESULT = new EqualityOperator(EqualityOperator.Type.NE); :}
+  ;
+
+relational_expression ::= shift_expression:a relational_operator_shift_expression_star:b
+    {: RESULT = new RelationalExpression(a, b); :}
+  ;
+relational_operator_shift_expression_star ::= {: RESULT = null; :}
+  | relational_operator:op shift_expression:a relational_operator_shift_expression_star:b
+    {: RESULT = new RelationalOperatorShiftExpressionStar(op, a, b); :}
+  ;
+
+relational_operator ::= LT
+    {: RESULT = new RelationalOperator(RelationalOperator.Type.LT); :}
+  | GT
+    {: RESULT = new RelationalOperator(RelationalOperator.Type.GT); :}
+  | LE
+    {: RESULT = new RelationalOperator(RelationalOperator.Type.LE); :}
+  | GE
+    {: RESULT = new RelationalOperator(RelationalOperator.Type.GE); :}
+  ;
+
+shift_expression ::= additive_expression:a shift_operator_additive_expression_star:b
+    {: RESULT = new ShiftExpression(a, b); :}
+  ;
+shift_operator_additive_expression_star ::= {: RESULT = null; :}
+  | shift_operator:op additive_expression:a shift_operator_additive_expression_star:b
+    {: RESULT = new ShiftOperatorAdditiveExpressionStar(op, a, b); :}
+  ;
+
+shift_operator ::= SHL
+    {: RESULT = new ShiftOperator(ShiftOperator.Type.SHL); :}
+  | SHR
+    {: RESULT = new ShiftOperator(ShiftOperator.Type.SHR); :}
+  ;
+
+additive_expression ::= multiplicative_expression:a additive_operator_multiplicative_expression_star:b
+    {: RESULT = new AdditiveExpression(a, b); :}
+  ;
+additive_operator_multiplicative_expression_star ::= {: RESULT = null; :}
+  | additive_operator:op multiplicative_expression:a additive_operator_multiplicative_expression_star:b
+    {: RESULT = new AdditiveOperatorMultiplicativeExpressionStar(op, a, b); :}
+  ;
+
+additive_operator ::= PLUS
+    {: RESULT = new AdditiveOperator(AdditiveOperator.Type.PLUS); :}
+  | MINUS
+    {: RESULT = new AdditiveOperator(AdditiveOperator.Type.MINUS); :}
+  ;
+
+multiplicative_expression ::= cast_expression:a multiplicative_operator_cast_expression_star:b
+    {: RESULT = new MultiplicativeExpression(a, b); :}
+  ;
+multiplicative_operator_cast_expression_star ::= {: RESULT = null; :}
+  | multiplicative_operator:op cast_expression:a multiplicative_operator_cast_expression_star:b
+    {: RESULT = new MultiOperatorCastExpressionStar(op, a, b); :}
+  ;
+
+multiplicative_operator ::= TIMES
+    {: RESULT = new MultiplicativeOperator(MultiplicativeOperator.Type.TIMES); :}
+  | DIVIDE
+    {: RESULT = new MultiplicativeOperator(MultiplicativeOperator.Type.DIVIDE); :}
+  | MOD
+    {: RESULT = new MultiplicativeOperator(MultiplicativeOperator.Type.MOD); :}
+  ;
+
+cast_expression ::= unary_expression:a
+    {: RESULT = a; :}
+  | LPAREN type_name:a RPAREN cast_expression:b
+    {: RESULT = new CastExpression(a, b); :}
+  ;
+
+type_name ::= type_specifier:a TIMES_star:b
+    {: RESULT = new TypeName(a, b); :}
+  ;
+
+unary_expression ::= postfix_expression:x
+    {: RESULT = x; :}
+  | INC unary_expression:x
+    {: RESULT = new UnaryExpression(new UnaryOperator(UnaryOperator.Type.INC), x); :}
+  | DEC unary_expression:x
+    {: RESULT = new UnaryExpression(new UnaryOperator(UnaryOperator.Type.DEC), x); :}
+  | unary_operator:op cast_expression:x
+    {: RESULT = new UnaryExpressionToCastExpression(op, x); :}
+  | SIZEOF unary_expression:x
+    {: RESULT = new UnaryExpression(new UnaryOperator(UnaryOperator.Type.SIZEOF), x); :}
+  | SIZEOF LPAREN type_name:x RPAREN
+    {: RESULT = new UnaryExpressionToTypeName(new UnaryOperator(UnaryOperator.Type.SIZEOF), x); :}
+  ;
+
+unary_operator ::= OPAND
+    {: RESULT = new UnaryOperator(UnaryOperator.Type.OPAND); :}
+  | TIMES
+    {: RESULT = new UnaryOperator(UnaryOperator.Type.TIMES); :}
+  | PLUS
+    {: RESULT = new UnaryOperator(UnaryOperator.Type.PLUS); :}
+  | MINUS
+    {: RESULT = new UnaryOperator(UnaryOperator.Type.MINUS); :}
+  | NEGATE
+    {: RESULT = new UnaryOperator(UnaryOperator.Type.NEGATE); :}
+  | NOT
+    {: RESULT = new UnaryOperator(UnaryOperator.Type.NOT); :}
+  ;
+
+postfix_expression ::= primary_expression:a postfix_star:b
+    {: RESULT = new PostfixExpression(a, b); :}
+  ;
+postfix_star ::= {: RESULT = null; :}
+  | postfix:a postfix_star:b
+    {: RESULT = new PostfixStar(a,b); :}
+  ;
+
+postfix ::= LSQBRA expression:x RSQBRA
+    {: RESULT = x; :}
+  | LPAREN arguments_ques:x RPAREN
+    {: RESULT = x; :}
+  | DOT ID:x
+    {: RESULT = new Postfix(Postfix.Type.DOT, symbol(x)); :}
+  | PTR ID:x
+    {: RESULT = new Postfix(Postfix.Type.PTR, symbol(x)); :}
+  | INC
+    {: RESULT = new Postfix(Postfix.Type.INC, null); :}
+  | DEC
+    {: RESULT = new Postfix(Postfix.Type.DEC, null); :}
+  ;
+arguments_ques ::= {: RESULT = new NULLArg(); :}
+  | arguments:x
+    {: RESULT = x; :}
+  ;
+
+arguments ::= assignment_expression:a
+    {: RESULT = new Arguments(a, null); :}
+  | assignment_expression:a COMMA arguments:b
+    {: RESULT = new Arguments(a, b); :}
+  ;
+/*
+COMMA_assignment_expression_star ::= {: RESULT = null; :}
+  | COMMA assignment_expression:a COMMA_assignment_expression_star:b
+    {: RESULT = new COMMAAssignmentExpressionStar(a, b); :}
+  ;
+*/
+
+primary_expression ::= ID:x
+    {:RESULT = new PrimaryExpression(symbol(x)); :}
+  | constant:x
+    {: RESULT = new PrimaryExpression(x); :}
+  | String:x
+    {: RESULT = new PrimaryExpression(new SString(x)); :}
+  | LPAREN expression:x RPAREN
+    {: RESULT = new PrimaryExpression(x); :}
+  ;
+
+constant ::= NUM:x
+    {: RESULT = new Num(x.intValue()); :} //integer_constant
+  | Char:x
+    {: RESULT = new Char(x.charAt(0)); :} //character_constant
+  ;
