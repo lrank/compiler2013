@@ -1,0 +1,11 @@
+This is a C-like compiler projcet created in 2013 Spring Semester
+
+Author:lrank(F.Winder.Li)
+
+Completed:
+	Parse
+	Semantic
+
+Uncompleted:
+	Translator
+
