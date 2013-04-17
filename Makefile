@@ -1,1 +1,1 @@
-all:midterm.jar
+All:midterm.jar
