@@ -1,1 +1,0 @@
-All:midterm.jar
