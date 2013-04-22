@@ -11,9 +11,12 @@ import codegen.AssemblyWriter;
 import codegen.MipsAssemblyWriter;
 import syntactic.Parser;
 import Semantic.Semant;
+import syntactic.IDPrint;
 //import appetizer.translate.Translator;
 
 public class Main {
+	
+	public static IDPrint idPrint = new IDPrint();
 
 	public static String pathOf(String filename) {
 		return Main.class.getResource(filename).getPath();
@@ -24,7 +27,7 @@ public class Main {
 		//========================Parsing
 		System.out.println("Parsing");
 		InputStream inp = new FileInputStream(filename);
-		//System.out.println(filename);
+		System.out.println(filename);
 		Parser parser = new Parser(inp);
 		java_cup.runtime.Symbol parseTree = null;
 		try {
@@ -36,8 +39,9 @@ public class Main {
 		} finally {
 			inp.close();
 		}
-
+		idPrint.toprint();
 		Program program = (Program) parseTree.value;
+		System.out.println("OK!");
 		
 		//======================Semantics
 		System.out.println("Semantics Checking");
@@ -50,6 +54,9 @@ public class Main {
 		} else {
 			System.out.println("OK!");
 		}
+		
+		//======================translator
+		
 	}
 
 	public static void main(String argv[]) throws IOException {

@@ -1,5 +1,6 @@
 package syntactic;
 import java_cup.runtime.*;
+import main.Main;
 
 %%
 
@@ -11,6 +12,10 @@ import java_cup.runtime.*;
 
 %{
 	String string = new String();
+	
+	private void print(String st) {
+		Main.idPrint.add(st);
+	}
 
 	private void err(String message) {
 		System.out.println("Scanning error in line " + yyline + ", column " + yycolumn + ": " + message);
@@ -56,76 +61,76 @@ Char = '[^\\]'|'\\.'|'\\n'|'\\t'|'\\\'|'\\''
 	"*/" { err("Comment symbol do not match!"); }
 	"//" { yybegin(YYCOMMENT_TWO); }
 
-	"typedef"	{System.out.print("typedef"); return tok(TYPEDEF); }
-	"void"	{System.out.print("void"); return tok(VOID); }
-	"char"	{System.out.print("char"); return tok(CHAR); }
-	"int"    {System.out.print("int"); return tok(INT); }
-	"struct"	{System.out.print("struct"); return tok(STRUCT); }
-	"union"	{System.out.print("union"); return tok(UNION); }
-	"if"     {System.out.print("if"); return tok(IF); }
-	"else"	{System.out.print("else"); return tok(ELSE); }
-	"while" {System.out.print("while"); return tok(WHILE); }
-	"for"	{System.out.print("for"); return tok(FOR); }
-	"continue"	{System.out.print("continue"); return tok(CONTINUE); }
-	"break"	{System.out.print("break"); return tok(BREAK); }
-	"return" {System.out.print("return"); return tok(RETURN); }
-	"sizeof"	{System.out.print("sizeof"); return tok(SIZEOF); }
+	"typedef"	{print("typedef"); return tok(TYPEDEF); }
+	"void"	{print("void"); return tok(VOID); }
+	"char"	{print("char"); return tok(CHAR); }
+	"int"    {print("int"); return tok(INT); }
+	"struct"	{print("struct"); return tok(STRUCT); }
+	"union"	{print("union"); return tok(UNION); }
+	"if"     {print("if"); return tok(IF); }
+	"else"	{print("else"); return tok(ELSE); }
+	"while" {print("while"); return tok(WHILE); }
+	"for"	{print("for"); return tok(FOR); }
+	"continue"	{print("continue"); return tok(CONTINUE); }
+	"break"	{print("break"); return tok(BREAK); }
+	"return" {print("return"); return tok(RETURN); }
+	"sizeof"	{print("sizeof"); return tok(SIZEOF); }
 
-	"(" { System.out.print("("); return tok(LPAREN); }
-	")" { System.out.print(")"); return tok(RPAREN); }
-	"{" { System.out.print("{"); return tok(LBRACE); }
-	"}" { System.out.print("}"); return tok(RBRACE); }
-	"[" { System.out.print("["); return tok(LSQBRA); }
-	"]" { System.out.print("]"); return tok(RSQBRA); }
+	"(" { print("("); return tok(LPAREN); }
+	")" { print(")"); return tok(RPAREN); }
+	"{" { print("{"); return tok(LBRACE); }
+	"}" { print("}"); return tok(RBRACE); }
+	"[" { print("["); return tok(LSQBRA); }
+	"]" { print("]"); return tok(RSQBRA); }
 
-	"." { System.out.print("."); return tok(DOT); }
-	"," { System.out.print(","); return tok(COMMA); }
-	";" { System.out.print(";"); return tok(SEMICOLON); }
+	"." { print("."); return tok(DOT); }
+	"," { print(","); return tok(COMMA); }
+	";" { print(";"); return tok(SEMICOLON); }
 
-	"~" { System.out.print("~"); return tok(NEGATE); }
-	"!" { System.out.print("!"); return tok(NOT); }
+	"~" { print("~"); return tok(NEGATE); }
+	"!" { print("!"); return tok(NOT); }
 
-	"+" { System.out.print("+"); return tok(PLUS); }
-	"-" { System.out.print("-"); return tok(MINUS); }
-	"*" { System.out.print("*"); return tok(TIMES); }
-	"/" { System.out.print("/"); return tok(DIVIDE); }
-	"%" { System.out.print("%"); return tok(MOD); }
-	"|" { System.out.print("|"); return tok(OPOR); }
-	"^" { System.out.print("^"); return tok(OPXOR); }
-	"&" { System.out.print("&"); return tok(OPAND); }
+	"+" { print("+"); return tok(PLUS); }
+	"-" { print("-"); return tok(MINUS); }
+	"*" { print("*"); return tok(TIMES); }
+	"/" { print("/"); return tok(DIVIDE); }
+	"%" { print("%"); return tok(MOD); }
+	"|" { print("|"); return tok(OPOR); }
+	"^" { print("^"); return tok(OPXOR); }
+	"&" { print("&"); return tok(OPAND); }
 
-	"||" { System.out.print("||"); return tok(OR); }
-	"&&" { System.out.print("&&"); return tok(AND); }
-	"==" { System.out.print("=="); return tok(EQ); }
-	"!=" { System.out.print("!="); return tok(NE) ;}
-	"<"  { System.out.print("<"); return tok(LT); }
-	"<=" { System.out.print("<="); return tok(LE); }
-	">"  { System.out.print(">"); return tok(GT); }
-	">=" { System.out.print(">="); return tok(GE); }
-	"<<" { System.out.print("<<"); return tok(SHL); }
-	">>" { System.out.print(">>"); return tok(SHR); }
-	"++" { System.out.print("++"); return tok(INC); }
-	"--" { System.out.print("--"); return tok(DEC); }
-	"->" { System.out.print("->"); return tok(PTR); }
-	"..." { System.out.print("..."); return tok(ELLIPSIS); }
+	"||" { print("||"); return tok(OR); }
+	"&&" { print("&&"); return tok(AND); }
+	"==" { print("=="); return tok(EQ); }
+	"!=" { print("!="); return tok(NE) ;}
+	"<"  { print("<"); return tok(LT); }
+	"<=" { print("<="); return tok(LE); }
+	">"  { print(">"); return tok(GT); }
+	">=" { print(">="); return tok(GE); }
+	"<<" { print("<<"); return tok(SHL); }
+	">>" { print(">>"); return tok(SHR); }
+	"++" { print("++"); return tok(INC); }
+	"--" { print("--"); return tok(DEC); }
+	"->" { print("->"); return tok(PTR); }
+	"..." { print("..."); return tok(ELLIPSIS); }
 
-	"=" { System.out.print("="); return tok(ASSIGN); }
-	"*=" { System.out.print("*="); return tok(MUL_ASSIGN); }
-	"/=" { System.out.print("/="); return tok(DIV_ASSIGN); }
-	"%=" { System.out.print("%="); return tok(MOD_ASSIGN); }
-	"+=" { System.out.print("+="); return tok(ADD_ASSIGN); }
-	"-=" { System.out.print("-="); return tok(SUB_ASSIGN); }
-	"<<=" { System.out.print("<<="); return tok(SHL_ASSIGN); }
-	">>=" { System.out.print(">>="); return tok(SHR_ASSIGN); }
-	"&=" { System.out.print("&="); return tok(AND_ASSIGN); }
-	"^=" { System.out.print("^="); return tok(XOR_ASSIGN); }
-	"|=" { System.out.print("|="); return tok(OR_ASSIGN); }
+	"=" { print("="); return tok(ASSIGN); }
+	"*=" { print("*="); return tok(MUL_ASSIGN); }
+	"/=" { print("/="); return tok(DIV_ASSIGN); }
+	"%=" { print("%="); return tok(MOD_ASSIGN); }
+	"+=" { print("+="); return tok(ADD_ASSIGN); }
+	"-=" { print("-="); return tok(SUB_ASSIGN); }
+	"<<=" { print("<<="); return tok(SHL_ASSIGN); }
+	">>=" { print(">>="); return tok(SHR_ASSIGN); }
+	"&=" { print("&="); return tok(AND_ASSIGN); }
+	"^=" { print("^="); return tok(XOR_ASSIGN); }
+	"|=" { print("|="); return tok(OR_ASSIGN); }
 
-/*	{Perprocess} {System.out.println("<PESPROCESS, "+ yytext() +">"); } */
-	{Identifier} { System.out.print("<ID, "+ yytext() +">"); return tok(ID, yytext()); }
-	{DecInteger} { System.out.print("<DecInteger, "+ yytext() +">"); return tok(NUM, new Integer(yytext())); }
+/*	{Perprocess} {println("<PESPROCESS, "+ yytext() +">"); } */
+	{Identifier} { print("<ID, "+ yytext() +">"); return tok(ID, yytext()); }
+	{DecInteger} { print("<DecInteger, "+ yytext() +">"); return tok(NUM, new Integer(yytext())); }
 	{OctInteger} {
-		System.out.print("<OctInteger, "+ yytext() +">");
+		print("<OctInteger, "+ yytext() +">");
 		int x = 0;
 		String st = yytext();
 		for (int i = 1; i < st.length(); ++i)
@@ -133,7 +138,7 @@ Char = '[^\\]'|'\\.'|'\\n'|'\\t'|'\\\'|'\\''
 	 	return tok(NUM, new Integer(x));
 	 	}
 	{HexInteger} {
-		System.out.print("<HexInteger, "+ yytext() +">");
+		print("<HexInteger, "+ yytext() +">");
 		int x = 0;
 		String st = yytext();
 		for (int i = 2; i < st.length(); ++i) {
@@ -149,11 +154,11 @@ Char = '[^\\]'|'\\.'|'\\n'|'\\t'|'\\\'|'\\''
 			}
 	 	return tok(NUM, new Integer(x));
 		}
-	{Whitespace} { System.out.print(yytext()); }
+	{Whitespace} { print(yytext()); }
 
 	\"		{ string = ""; yybegin(STRING); }
 
-	{Char}	{System.out.print("<Char, "+ yytext() +">"); return tok(Char, yytext()); }
+	{Char}	{print("<Char, "+ yytext() +">"); return tok(Char, yytext()); }
 
 	\#	{yybegin(PRE); }
 
@@ -167,7 +172,7 @@ Char = '[^\\]'|'\\.'|'\\n'|'\\t'|'\\\'|'\\''
 
 <STRING> {
   \"                             { yybegin(YYINITIAL);
-  								   System.out.print("<String, "+ string +">");
+  								   print("<String, "+ string +">");
                                    return tok(String, string); }
   [^\n\r\"\\]+                   { string += yytext(); }
   \\t                            { string += "\\t"; }

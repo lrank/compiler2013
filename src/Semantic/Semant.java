@@ -48,12 +48,14 @@ public class Semant {
 	
 	public void checkProg(Program p) {
 		loopCount = 0;
-		if (p.decl instanceof Declaration)
-			checkDec((Declaration) p.decl);
-		if (p.decl instanceof FunctionDefinition)
-			checkDec((FunctionDefinition) p.decl);
-		if (p.list != null)
-			checkProg(p.list);
+		Program tmp = p;
+		while (tmp != null) {
+			if (tmp.decl instanceof Declaration)
+				checkDec((Declaration) tmp.decl);
+			if (tmp.decl instanceof FunctionDefinition)
+				checkDec((FunctionDefinition) tmp.decl);
+			tmp = tmp.list;
+		}
 	}
 	
 	public Type checkTypeSp(TypeSpecifier ts) {
@@ -172,14 +174,20 @@ public class Semant {
 	public RECORD checkParameters(Parameters p) {
 		if (p == null)
 			return null;
-		RECORD r = null;
+		RECORD r = null, tr = null;
 		Parameters tmp = p;
 		while (tmp != null) {
 			PlainDeclaration pd = (PlainDeclaration)tmp.decl1;
 			Type tp = checkTypeSp(pd.typeSpecifier); //para type
 			tp = checkDeclarator((Declarator)pd.decl, tp);
 
-			r = new RECORD(new StructOrUnion("STRUCT"),((Declarator)pd.decl).plainDeclarator.sym, tp, r);
+			RECORD ur = new RECORD(new StructOrUnion("STRUCT"),((Declarator)pd.decl).plainDeclarator.sym, tp, null);
+			if (r == null)
+				r = ur;
+			else
+				tr.tail = ur;
+			tr = ur;
+			
 			tmp = tmp.decl2;
 		}
 		return r;
@@ -195,7 +203,7 @@ public class Semant {
 					error("array index is not integer!");
 					return tp;
 				}
-				ar = new ARRAY(tp);
+				ar = new ARRAY(ar);
 				tmp = tmp.constantExpressionStar;
 			}
 		} else //parameters check
@@ -313,8 +321,16 @@ public class Semant {
 			t2 = Type.INT;
 		if ((t1 instanceof POINT) && (t2 instanceof POINT))
 			return true;
+		
 		if ((t2 instanceof POINT) && (t1 == Type.INT))
 			return true;
+		/*
+		if ((t1 instanceof POINT) && (t2 == Type.INT))
+			return true;*/
+		if ((t1 instanceof POINT) && (t2 instanceof ARRAY))
+			return checkTypeEq(((POINT)t1).element, ((ARRAY)t2).element);
+		if ((t2 instanceof POINT) && (t1 instanceof ARRAY))
+			return checkTypeEq(t2, t1);
 		if (t1 == t2)
 			return true;
 		
@@ -323,14 +339,20 @@ public class Semant {
 	}
 	
 	public boolean islvalue(UnaryExpressionAll ex) {
-		if (!(ex instanceof PostfixExpression))
-			return false;
+		if (ex instanceof UnaryExpressionToCastExpression) {
+			if (((UnaryExpressionToCastExpression)ex).unaryOperator.unaryOperator != UnaryOperator.Type.TIMES)
+				return false;
+		} else
+			if (!(ex instanceof PostfixExpression))
+				return false;
 		if (ex instanceof UnaryExpression) {
 			UnaryExpression e = (UnaryExpression) ex;
 			if (e.unaryOperator.equals(UnaryOperator.Type.OPAND) ||
 				e.unaryOperator.equals(UnaryOperator.Type.TIMES))
-				return islvalue(e.castExpression);
+				return islvalue(e.FacastExpression);
 		}
+		if (ex instanceof UnaryExpressionToCastExpression)
+			return islvalue(((UnaryExpressionToCastExpression)ex).castExpression);
 		return islvalue((PostfixExpression)ex);
 	}
 	public boolean islvalue(PostfixExpression ex) {
@@ -355,7 +377,7 @@ public class Semant {
 		return islvalue(ex.postfixStar);
 	}
 	public boolean islvalue(CastExpression ex) {
-		if (ex instanceof UnaryExpression)
+		if (ex instanceof UnaryExpressionAll)
 			return islvalue((UnaryExpressionAll) ex);
 		return false;
 	}
@@ -604,7 +626,7 @@ public class Semant {
 			return checkUnaryExpressionALL((UnaryExpressionAll) ex);
 		else {
 			Type t = checkTypename(ex.type);
-			checkCastExpression(ex.castExpression);
+			checkCastExpression(ex.FacastExpression);
 			return t;
 		}
 	}
@@ -631,8 +653,8 @@ public class Semant {
 			else return tt;
 		}
 		if (ex instanceof UnaryExpressionToCastExpression) {
-			Type tt = checkCastExpression(ex.castExpression);
-			UnaryOperator op = ((UnaryExpression)ex).unaryOperator;
+			Type tt = checkCastExpression(((UnaryExpressionToCastExpression)ex).castExpression);
+			UnaryOperator op = ((UnaryExpressionToCastExpression)ex).unaryOperator;
 			if (op.unaryOperator != UnaryOperator.Type.OPAND)
 				return new POINT(tt);
 			if (op.unaryOperator != UnaryOperator.Type.TIMES)
@@ -661,11 +683,18 @@ public class Semant {
 		
 		if (en instanceof FunEntry) {
 			if (ex.postfixStar.postfix != null) {
-				if (!(ex.postfixStar.postfix instanceof Arguments)) {
-					error("para and arg not match");
-					return ((FunEntry) en).type;
-				}
-				if (!checkArg((Arguments)ex.postfixStar.postfix, ((FunEntry) en).para)) {
+				if (ex.postfixStar.postfix instanceof Arguments) {
+					if (!checkArg((Arguments)ex.postfixStar.postfix, ((FunEntry) en).para)) {
+						error("para and arg not match");
+						return ((FunEntry) en).type;
+					}
+				} else
+				if (ex.postfixStar.postfix instanceof NULLArg) {
+					if (((FunEntry) en).para != null) {
+						error("para and arg not match");
+						return ((FunEntry) en).type;
+					}
+				} else {
 					error("para and arg not match");
 					return ((FunEntry) en).type;
 				}
@@ -696,7 +725,8 @@ public class Semant {
 		
 		while (ex != null) {
 			if (ex.postfix instanceof Expression) {
-				if (!(ty instanceof ARRAY)) {
+				if (!(ty instanceof ARRAY) &&
+					!(retop instanceof POINT)) {
 					error("var not a array");
 					return null;
 				}
@@ -704,7 +734,10 @@ public class Semant {
 					error("array index should be a int");
 					return null;
 				}
-				ty = ((ARRAY)ty).element;
+				if (retop instanceof POINT)
+					retop = ((POINT) retop).element;
+				else
+					ty = ((ARRAY)ty).element;
 			}
 			else
 			if (ex.postfix instanceof Postfix) {
