@@ -1,13 +1,11 @@
 #include <stdio.h>
 
-
-
-int func(int x(int t1, int t2), int y) {
+int func(int x, int y) {
 	return x + y;
 }
 
 int main() {
-//	func(a, 2);
+	func(2, 2);
+	printf(4);
 	return 0;
 }
-

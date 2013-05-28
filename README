@@ -1,12 +1,22 @@
-This is a C-like compiler projcet created in 2013 Spring Semester
+This is a java(platform eclipse) project for re-imply a C-like compiler.
+Created in 2013 Spring Semester
 
 Author:lrank(F.Winder.Li)
-Update time:20130420
+Last update time:20130421
 
-Completed:
-	Parse
-	Semantic
+Section Details:
+	Parse:
+		Completed
 
-Uncompleted:
-	Translator
+	Semantic:
+		"typedef" problem still cannot solve perfectly.
+		All the testcases passed.
+
+	Translator:
+		done
+
+	Codegen:
+		done:
+
+	Debuging:
 

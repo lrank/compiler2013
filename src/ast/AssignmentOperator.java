@@ -7,7 +7,7 @@ public class AssignmentOperator extends Operator {
 		 SUB_ASSIGN, SHL_ASSIGN, SHR_ASSIGN, AND_ASSIGN, XOR_ASSIGN, OR_ASSIGN;
 		}
 
-	Type assignmentOperator;
+	public Type assignmentOperator;
 
 	public AssignmentOperator(Type a) {
 		assignmentOperator = a;

@@ -9,4 +9,7 @@ public final class POINT extends Type {
 	public POINT(Type e) {
 		element = e;
 	}
+	public int sizeof() {
+		return 4;
+	}
 }

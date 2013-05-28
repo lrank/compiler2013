@@ -6,7 +6,7 @@ public class AdditiveOperator extends Operator {
 		PLUS, MINUS;
 		}
 
-	Type additiveOperator;
+	public Type additiveOperator;
 
 	public AdditiveOperator(Type a) {
 		additiveOperator = a;

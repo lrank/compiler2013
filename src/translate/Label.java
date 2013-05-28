@@ -1,16 +1,20 @@
 package translate;
 
-public class Label {
+public class Label extends Tcode{
 
 	private static int count = 0;
 
-	private int i;
+	private String i;
 
 	public Label() {
-		i = ++count;
+		i = "" + (++count);
+	}
+	
+	public Label(String s) {
+		i = s;
 	}
 
-	public String toString() {
-		return "L" + i;
+	public String tostring() {
+		return "Label_" + i;
 	}
 }

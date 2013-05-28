@@ -6,7 +6,7 @@ public class RelationalOperator extends Operator {
 		LT, GT, LE, GE;
 		}
 
-	Type relationalOperator;
+	public Type relationalOperator;
 
 	public RelationalOperator(Type a) {
 		relationalOperator = a;

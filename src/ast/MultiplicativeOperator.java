@@ -6,7 +6,7 @@ public class MultiplicativeOperator extends Operator {
 		TIMES, DIVIDE, MOD;
 		}
 
-	Type multiplicativeOperator;
+	public Type multiplicativeOperator;
 
 	public MultiplicativeOperator(Type a) {
 		multiplicativeOperator = a;

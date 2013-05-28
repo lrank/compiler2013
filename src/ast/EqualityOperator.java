@@ -6,7 +6,7 @@ public class EqualityOperator extends Operator {
 		EQ, NE;
 		}
 
-	Type equalityOperator;
+	public Type equalityOperator;
 
 	public EqualityOperator(Type a) {
 		equalityOperator = a;

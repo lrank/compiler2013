@@ -11,7 +11,8 @@ public final class Error {
 	}
 	
 	public Error(Position pos, String str, boolean silent) {
-		message = "Error in line " + (pos.line + 1) + ", column " + (pos.column + 1) + ": " + str;
+		//message = "Error in line " + (pos.line + 1) + ", column " + (pos.column + 1) + ": " + str;
+		message = str;
 		
 		if (!silent) {
 			System.out.println(this);

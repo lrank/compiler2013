@@ -6,7 +6,7 @@ public class ShiftOperator extends Operator {
 		SHL, SHR;
 		}
 
-	Type shiftOperator;
+	public Type shiftOperator;
 
 	public ShiftOperator(Type a) {
 		shiftOperator = a;

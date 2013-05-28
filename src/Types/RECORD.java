@@ -15,6 +15,7 @@ public final class RECORD extends Type {
 	public Type fieldType = null;
 	public RECORD tail = null;
 	public boolean variable = false;
+	public int offset = -1;
 
 	public RECORD(StructOrUnion sss, Symbol n, Type t, RECORD x) {
 		sou = sss;
