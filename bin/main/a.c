@@ -1,11 +1,17 @@
+/**
+ * calculate factor, nothing special
+ * by msh
+ */
 #include <stdio.h>
 
-int func(int x, int y) {
-	return x + y;
+int nfactor(int n) {
+  if (n == 0) return 1;
+  else return n * nfactor(n - 1);
 }
 
 int main() {
-	func(2, 2);
-	printf(4);
-	return 0;
+  int a;
+  a = nfactor(6);
+  printf(a);
+  return a;
 }

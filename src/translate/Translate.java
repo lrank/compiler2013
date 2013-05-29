@@ -190,7 +190,8 @@ public class Translate {
 		
 		Label fstart = new Label(((PlainDeclarator) d.decl2).sym.toString());
 		emit(fstart);
-		emit(new Funstart());
+		Funstart l = new Funstart();
+		emit(l);
 		
 		Type tp = checkTypeSp((TypeSpecifier) d.decl1);//func type
 		PlainDeclarator pd = (PlainDeclarator) d.decl2;
@@ -206,6 +207,7 @@ public class Translate {
 		transStatement((CompoundStatement) d.statements, r);
 		emit(new TReturn());
 		
+		l.toff = offset;
 		offset = tempoffset;
 	}
 	
@@ -673,7 +675,6 @@ public class Translate {
 			emit(new PARAcode(ret));
 			
 			//offset += sizeof(ret.type);
-			offset += 4;
 			r = r.next;
 		}
 	}
@@ -692,6 +693,7 @@ public class Translate {
 				}
 			TRegister k = new TRegister();
 			varinfo vs = new varinfo(k.to(), Type.INT, offset, level);
+			emit(new Define(vs));
 			emit(new Callcode(((FunEntry) en).name, vs, l));
 			emit(l);
 			return vs;

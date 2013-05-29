@@ -15,7 +15,7 @@ public class MipsAssemblyWriter {
 
 	public void load(String reg, varinfo v) {
 		if (v.type == Type.STRING) {
-			emit("li %s, str_%d", reg, v.level);
+			emit("la %s, str_%d", reg, v.level);
 			return;
 		}
 		if (v.name.charAt(0) == '#') {
@@ -26,7 +26,7 @@ public class MipsAssemblyWriter {
 			if (v.type == Type.VOID) {
 				load(reg, v.off);
 				emit("add %s, $gp, %s", reg, reg);
-				emit("lw %s, %d($%s)", reg, v.offset, reg);
+				emit("lw %s, %d(%s)", reg, v.offset, reg);
 			}
 			else
 				emit("lw %s, %d($gp)", reg, v.offset);
@@ -35,7 +35,7 @@ public class MipsAssemblyWriter {
 			if (v.type == Type.VOID) {
 				load(reg, v.off);
 				emit("sub %s, $fp, %s", reg, reg);
-				emit("lw %s, %d($%s)", reg, -v.offset, reg);
+				emit("lw %s, %d(%s)", reg, -v.offset, reg);
 			}
 			else
 				emit("lw %s, %d($fp)", reg, -v.offset);
@@ -52,7 +52,7 @@ public class MipsAssemblyWriter {
 			if (v.type == Type.VOID) {
 				load(reg, v.off);
 				emit("add %s, $gp, %s", reg, reg);
-				emit("sw %s, %d($%s)", reg, v.offset, reg);
+				emit("sw %s, %d(%s)", reg, v.offset, reg);
 			}
 			else
 				emit("sw %s, %d($gp)", reg, v.offset);
@@ -61,7 +61,7 @@ public class MipsAssemblyWriter {
 			if (v.type == Type.VOID) {
 				load(reg, v.off);
 				emit("sub %s, $fp, %s", reg, reg);
-				emit("sw %s, %d($%s)", reg, -v.offset, reg);
+				emit("sw %s, %d(%s)", reg, -v.offset, reg);
 			}
 			else
 				emit("sw %s, %d($fp)", reg, -v.offset);
@@ -167,7 +167,7 @@ public class MipsAssemblyWriter {
 
 	public void jz(NotIfcode cond) {
 		load("$t0", cond.t1);
-		emit("beqz $t0, %s", cond.label.tostring());
+		emit("bnez $t0, %s", cond.label.tostring());
 	}
 
 	private List<String> lines = new ArrayList<String>();
@@ -193,28 +193,32 @@ public class MipsAssemblyWriter {
 			and(c.t1, c.t2, c.t3);
 		} else
 		if (c.op == "==") {
-			beq(c.t1, c.t2, c.t3);
+			sub(c.t1, c.t2, c.t3);
 		} else {
 			emit("%s", c.op);
 		}
 	}
 	
 	public void Callcode(Callcode c) {
-		emit("j Label_%s", c.t1);
+		emit("add $fp, $v1, $0");
+		emit("jal Label_%s", c.t1);
+		store("$v0", c.t2);
 	}
 	
 	public void Funstart(Funstart c) {
-		emit("sw $31, 0($sp)");
+		emit("sw $31, 4($fp)");
+		emit("addi $sp, $sp, -%d", c.toff);
 	}
 	
 	public void TReturn(TReturn c) {
 		if (c.t1 != null)
 			load("$v0", c.t1);
 		emit("addi $sp, $fp, 0");
-		emit("lw $t0, 0($sp)");
-		emit("add $fp, $fp, $t0");
+		emit("lw $t0, 8($sp)");
+		emit("lw $31, 4($sp)");
+		emit("addi $sp, $sp, 8");
+		emit("add $fp, $sp, $t0");
 		
-		emit("lw $31, 0($fp)");
 		emit("jr $31");
 	}
 	
@@ -224,23 +228,23 @@ public class MipsAssemblyWriter {
 			p = 0;
 			emit("addi $sp, $sp, -4");
 			emit("sub $t0, $fp, $sp");
-			emit("sw $t0, 4($sp)");
-			emit("add $fp, $0, $sp");
+			emit("sw $t0, 0($sp)");
+			emit("addi $sp, $sp, -8");
+			emit("add $v1, $0, $sp");
 			return;
 		}
 		if (p < 4) {
 			load("$a" + p, c.t1);
-			emit("addi $sp, $sp, -4");
-			emit("sw $a%d, 0($sp)", p);
+			emit("sw $a%d, -%d($sp)", p, p * 4);
 			++p;
+			return;
 		}
 		load("$t0", c.t1);
-		emit("addi $sp, $sp, -4");
-		emit("sw $t0, 0($sp)");
+		emit("sw $t0, -%d($sp)", p * 4);
+		++p;
 	}
 	
 	public void Define(Define c) {
-		
 	}
 	
 	private void emit(String fmt, Object... objects) {
@@ -264,16 +268,17 @@ public class MipsAssemblyWriter {
 		emit(".data");
 		int i = 0;
 		for (String s : str)
-			emit("str_%d : \"%s\"", ++i, s);
+			emit("str_%d: .asciiz \"%s\"", ++i, s);
 		
 		emit(".text");
 		emit(".align 2");
 		emit(".globl main");
 		emit("main:");
-		Label l = new Label("end_main");
-		emit("addi $sp, $sp, -4 # move up a cell");
-		emit("move $fp, $sp     # start using memory here");
 		emit("move $gp, $sp     # set global pointer (unused)");
+		emit("sw $0, 0($sp)");
+		emit("sw $0, -4($sp)");
+		emit("addi $sp, $sp, -8 # move up a cell");
+		emit("move $fp, $sp     # start using memory here");
 		emit("jal Label_main");
 		emit("end_main:");
 		emit("li $v0, 10        # exit");
@@ -282,9 +287,20 @@ public class MipsAssemblyWriter {
 
 	public void emitEpilogue() {
 		emit("Label_printf:");
-		emit("lw $a0, 0($sp)");
-		emit("move $a0, $v0");
+		emit("sw $31, 4($fp)");
+		emit("addi $sp, $sp, -%d", 4);
+		
+		emit("lw $a0, 0($fp)");
 		emit("li $v0, 1         # print_int");
+		//emit("addi $sp, $sp, 12");
+		//emit("move $fp, $sp");
+
+		emit("addi $sp, $fp, 0");
+		emit("lw $t0, 8($sp)");
+		emit("lw $31, 4($sp)");
+		emit("addi $sp, $sp, 8");
+		emit("add $fp, $sp, $t0");
+		
 		emit("syscall");
 		emit("jr $31");
 	}
