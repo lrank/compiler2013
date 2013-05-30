@@ -5,6 +5,7 @@ Author:lrank(F.Winder.Li)
 Last update time:20130421
 
 Section Details:
+
 	Parse:
 		Completed
 
@@ -19,5 +20,6 @@ Section Details:
 		done:
 
 	Debuging:
-		function-calling solved
-		printf need
+		multi-function calling solved
+		printf %s %d %c supported
+		malloc needed

@@ -669,10 +669,12 @@ public class Translate {
 		return null;
 	}
 	
+	private ArrayList<Tcode> stac = new ArrayList<Tcode>();
+	
 	public void transArg(Arguments r) {
 		while (r != null) {
 			varinfo ret = transAssignmentExpression(r.assignmentExpression);
-			emit(new PARAcode(ret));
+			stac.add(new PARAcode(ret));
 			
 			//offset += sizeof(ret.type);
 			r = r.next;
@@ -685,14 +687,22 @@ public class Translate {
 		
 		Entry en =  transSymbol(ex.primaryExpression.sym);
 		if (en instanceof FunEntry) {
-			Label l = new Label();
-			emit(new PARAcode(new varinfo("START", Type.INT, 0, level), l));
+			ArrayList<Tcode> stac_temp = stac;
+			stac = new ArrayList<Tcode>();
 			if (ex.postfixStar.postfix != null)
 				if (ex.postfixStar.postfix instanceof Arguments) {
 					transArg((Arguments)ex.postfixStar.postfix);
 				}
+			Label l = new Label();
+			emit(new PARAcode(new varinfo("START", Type.INT, 0, level), l));
+			for (Tcode u : stac) {
+				emit(u);
+			}
+			stac = stac_temp;
+			
 			TRegister k = new TRegister();
 			varinfo vs = new varinfo(k.to(), Type.INT, offset, level);
+			offset += 4;
 			emit(new Define(vs));
 			emit(new Callcode(((FunEntry) en).name, vs, l));
 			emit(l);

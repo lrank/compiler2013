@@ -10,8 +10,6 @@ int nfactor(int n) {
 }
 
 int main() {
-  int a;
-  a = nfactor(6);
-  printf(a);
+  printf("%d\n", nfactor(6));
   return a;
 }

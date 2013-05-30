@@ -1,6 +1,7 @@
 package main;
 
 import java.io.*;
+import java.util.*;
 
 import ast.Program;
 import codegen.Codegen;
@@ -21,7 +22,7 @@ public class Main {
 		
 		//========================Parsing
 		System.out.println("====================\nParsing");
-		InputStream inp = new FileInputStream(filename);
+		InputStream inp = new FileInputStream(pathOf(filename));
 		System.out.println(filename);
 		Parser parser = new Parser(inp);
 		java_cup.runtime.Symbol parseTree = null;
@@ -59,17 +60,27 @@ public class Main {
 		
 		//======================Codegen
 		System.out.println("====================\nCodegen");
-		PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream("a.s")));
+		PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename + ".s")));
 		Codegen codegen = new Codegen();
 		codegen.gen(translate);
 		//System.out.println(codegen.tostring());
 		out.println(codegen.tostring());
+		
+		out.println("########################################");
+		out.println("############### CODE GEN ###############");
+		out.println("########################################");
+		
+		Scanner scanner = new Scanner(new BufferedInputStream(Main.class.getResourceAsStream("printf.txt")));
+		while (scanner.hasNextLine()) {
+			out.println(scanner.nextLine());
+		}
+		scanner.close();
 		out.close();
 	}
 
 	public static void main(String argv[]) throws IOException {
 		//compile(pathOf("test.c"));
-		compile(pathOf("a.c"));
+		compile("a.c");
 		//compile(argv[0]);
 		System.exit(0);
 	}

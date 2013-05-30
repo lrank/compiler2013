@@ -1,5 +1,8 @@
 package codegen;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -200,7 +203,7 @@ public class MipsAssemblyWriter {
 	}
 	
 	public void Callcode(Callcode c) {
-		emit("add $fp, $v1, $0");
+		emit("add $fp, $sp, $0");
 		emit("jal Label_%s", c.t1);
 		store("$v0", c.t2);
 	}
@@ -230,7 +233,6 @@ public class MipsAssemblyWriter {
 			emit("sub $t0, $fp, $sp");
 			emit("sw $t0, 0($sp)");
 			emit("addi $sp, $sp, -8");
-			emit("add $v1, $0, $sp");
 			return;
 		}
 		if (p < 4) {
@@ -286,22 +288,5 @@ public class MipsAssemblyWriter {
 	}
 
 	public void emitEpilogue() {
-		emit("Label_printf:");
-		emit("sw $31, 4($fp)");
-		emit("addi $sp, $sp, -%d", 4);
-		
-		emit("lw $a0, 0($fp)");
-		emit("li $v0, 1         # print_int");
-		//emit("addi $sp, $sp, 12");
-		//emit("move $fp, $sp");
-
-		emit("addi $sp, $fp, 0");
-		emit("lw $t0, 8($sp)");
-		emit("lw $31, 4($sp)");
-		emit("addi $sp, $sp, 8");
-		emit("add $fp, $sp, $t0");
-		
-		emit("syscall");
-		emit("jr $31");
 	}
 }
