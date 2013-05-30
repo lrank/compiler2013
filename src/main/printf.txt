@@ -26,13 +26,13 @@ printf_fmt:
 	beq $a0, '%', printf_perc 	# if '%', print a '%'
 printf_int:
 	lw $a0, 0($a1)
-	add $a1, $a1, 4
+	addi $a1, $a1, -4
 	li $v0, 1
 	syscall
 	b printf_next
 printf_char:
 	lw $a0, 0($a1)
-	add $a1, $a1, 4
+	addi $a1, $a1, -4
 	sb $a0, 0($s6)
 	move $a0, $s6
 	li $v0, 4

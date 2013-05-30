@@ -110,6 +110,13 @@ public class MipsAssemblyWriter {
 		emit("mul $t0, $t1, $t2");
 		store("$t0", dest);
 	}
+	
+	public void rem(varinfo dest, varinfo src1, varinfo src2) {
+		load("$t1", src1);
+		load("$t2", src2);
+		emit("rem $t0, $t1, $t2");
+		store("$t0", dest);
+	}
 
 	public void div(Temp dest, Temp src1, Temp src2) {
 		emit("lw $t1, %d($fp)", src1.offset);
@@ -117,6 +124,7 @@ public class MipsAssemblyWriter {
 		emit("div $t0, $t1, $t2");
 		emit("sw $t0, %d($fp)", dest.offset);
 	}
+	
 
 	public void seq(Temp dest, Temp src1, Temp src2) {
 		emit("lw $t1, %d($fp)", src1.offset);
@@ -180,26 +188,21 @@ public class MipsAssemblyWriter {
 	}
 	
 	public void InCode(InCode c) {
-		if (c.op == "+") {
+		if (c.op == "+")
 			add(c.t1, c.t2, c.t3);
-		} else
-		if (c.op == "-") {
+		else if (c.op == "-")
 			sub(c.t1, c.t2, c.t3);
-		} else
-		if (c.op == "*") {
+		else if (c.op == "*")
 			mul(c.t1, c.t2, c.t3);
-		} else
-		if (c.op == "<") {
+		else if (c.op == "<")
 			slt(c.t1, c.t2, c.t3);
-		} else
-		if (c.op == "&&") {
+		else if (c.op == "&&")
 			and(c.t1, c.t2, c.t3);
-		} else
-		if (c.op == "==") {
+		else if (c.op == "==")
 			sub(c.t1, c.t2, c.t3);
-		} else {
-			emit("%s", c.op);
-		}
+		else if (c.op == "%")
+			rem(c.t1, c.t2, c.t3);
+		else emit("%s", c.op);
 	}
 	
 	public void Callcode(Callcode c) {
