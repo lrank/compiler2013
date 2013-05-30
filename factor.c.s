@@ -1,11 +1,9 @@
 .data
-.globl str_0
-	str_0: .asciiz "%d "
-.globl str_1
-	str_1: .asciiz "\n"
 .align 2
+.globl str_0
+	str_0: .asciiz "%d\n"
 .globl data_gp
-	data_gp: .space 400
+	data_gp: .space 0
 .text
 .align 2
 .globl main
@@ -19,118 +17,84 @@ main:
 end_main:
 	li $v0, 10        # exit
 	syscall
+Label_nfactor:
+	sw $31, 4($fp)
+	addi $sp, $sp, -20
+	lw $t1, 0($fp)
+	li $t2, 0
+	seq $t0, $t1, $t2
+	sw $t0, -4($fp)
+	lw $t0, -4($fp)
+	beqz $t0, Label_1
+	li $v0, 1
+	addi $sp, $fp, 0
+	lw $t0, 8($sp)
+	lw $31, 4($sp)
+	addi $sp, $sp, 8
+	add $fp, $sp, $t0
+	jr $31
+Label_1:
+	lw $t1, 0($fp)
+	li $t2, 1
+	sub $t0, $t1, $t2
+	sw $t0, -8($fp)
+	addi $sp, $sp, -4
+	sub $t0, $fp, $sp
+	sw $t0, 0($sp)
+	addi $sp, $sp, -8
+	lw $a0, -8($fp)
+	sw $a0, -0($sp)
+	add $fp, $sp, $0
+	jal Label_nfactor
+	sw $v0, -12($fp)
+Label_2:
+	lw $t1, 0($fp)
+	lw $t2, -12($fp)
+	mul $t0, $t1, $t2
+	sw $t0, -16($fp)
+	lw $v0, -16($fp)
+	addi $sp, $fp, 0
+	lw $t0, 8($sp)
+	lw $31, 4($sp)
+	addi $sp, $sp, 8
+	add $fp, $sp, $t0
+	jr $31
+	addi $sp, $fp, 0
+	lw $t0, 8($sp)
+	lw $31, 4($sp)
+	addi $sp, $sp, 8
+	add $fp, $sp, $t0
+	jr $31
 Label_main:
 	sw $31, 4($fp)
-	addi $sp, $sp, -36
-	li $t1, 1
+	addi $sp, $sp, -12
+	addi $sp, $sp, -4
+	sub $t0, $fp, $sp
+	sw $t0, 0($sp)
+	addi $sp, $sp, -8
+	li $a0, 6
+	sw $a0, -0($sp)
+	add $fp, $sp, $0
+	jal Label_nfactor
+	sw $v0, -4($fp)
+Label_3:
+	lw $t1, -4($fp)
 	li $t2, 0
 	add $t0, $t1, $t2
 	sw $t0, 0($fp)
-Label_1:
-	lw $t1, 0($fp)
-	li $t2, 3
-	slt $t0, $t1, $t2
-	sw $t0, -8($fp)
-	lw $t0, -8($fp)
-	beqz $t0, Label_2
-	li $t1, 1
-	li $t2, 0
-	add $t0, $t1, $t2
-	sw $t0, -4($fp)
-Label_4:
-	lw $t1, -4($fp)
-	li $t2, 3
-	slt $t0, $t1, $t2
-	sw $t0, -12($fp)
-	lw $t0, -12($fp)
-	beqz $t0, Label_5
-	lw $t1, 0($fp)
-	lw $t2, -4($fp)
-	mul $t0, $t1, $t2
-	sw $t0, -16($fp)
-	li $t1, 0
-	li $t2, 0
-	add $t0, $t1, $t2
-	sw $t0, -20($fp)
-	lw $t1, -20($fp)
-	lw $t2, 0($fp)
-	add $t0, $t1, $t2
-	sw $t0, -20($fp)
-	lw $t1, -20($fp)
-	li $t2, 10
-	mul $t0, $t1, $t2
-	sw $t0, -20($fp)
-	lw $t1, -20($fp)
-	lw $t2, -4($fp)
-	add $t0, $t1, $t2
-	sw $t0, -20($fp)
-	lw $t1, -20($fp)
-	li $t2, 4
-	mul $t0, $t1, $t2
-	sw $t0, -20($fp)
-	lw $t1, -16($fp)
-	li $t2, 0
-	add $t0, $t1, $t2
-	lw $t3, -20($fp)
-	add $t3, $gp, $t3
-	sw $t0, 0($t3)
-	li $t1, 0
-	li $t2, 0
-	add $t0, $t1, $t2
-	sw $t0, -24($fp)
-	lw $t1, -24($fp)
-	lw $t2, 0($fp)
-	add $t0, $t1, $t2
-	sw $t0, -24($fp)
-	lw $t1, -24($fp)
-	li $t2, 10
-	mul $t0, $t1, $t2
-	sw $t0, -24($fp)
-	lw $t1, -24($fp)
-	lw $t2, -4($fp)
-	add $t0, $t1, $t2
-	sw $t0, -24($fp)
-	lw $t1, -24($fp)
-	li $t2, 4
-	mul $t0, $t1, $t2
-	sw $t0, -24($fp)
 	addi $sp, $sp, -4
 	sub $t0, $fp, $sp
 	sw $t0, 0($sp)
 	addi $sp, $sp, -8
 	la $a0, str_0
 	sw $a0, -0($sp)
-	lw $a1, -24($fp)
-	add $a1, $gp, $a1
-	lw $a1, 0($a1)
+	lw $a1, 0($fp)
 	sw $a1, -4($sp)
 	add $fp, $sp, $0
 	jal Label_printf
-	sw $v0, -28($fp)
-Label_7:
-Label_6:
-	lw $a1, -4($fp)
-	addi $a1, $a1, 1
-	sw $a1, -4($fp)
-	j Label_4
-Label_5:
-	addi $sp, $sp, -4
-	sub $t0, $fp, $sp
-	sw $t0, 0($sp)
-	addi $sp, $sp, -8
-	la $a0, str_1
-	sw $a0, -0($sp)
-	add $fp, $sp, $0
-	jal Label_printf
-	sw $v0, -32($fp)
-Label_8:
-Label_3:
-	lw $a1, 0($fp)
-	addi $a1, $a1, 1
-	sw $a1, 0($fp)
-	j Label_1
-Label_2:
-	li $v0, 0
+	sw $v0, -8($fp)
+Label_4:
+	lw $v0, 0($fp)
 	addi $sp, $fp, 0
 	lw $t0, 8($sp)
 	lw $31, 4($sp)

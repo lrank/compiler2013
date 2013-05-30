@@ -17,7 +17,7 @@ public class Codegen {
 	
 	public void gen(Translate tran) {
 		str = tran.str;
-		write.emitPrologue(str);
+		write.emitPrologue(str, tran.offset);
 		list = tran.list;
 		
 		for (Tcode c : list) {
@@ -41,8 +41,8 @@ public class Codegen {
 				write.TReturn((TReturn) c);
 			if (c instanceof PARAcode)
 				write.PARAcode((PARAcode) c);
-			if (c instanceof Define)
-				write.Define((Define) c);
+//			if (c instanceof Define)
+	//			write.Define((Define) c);
 		}
 		
 		write.emitEpilogue();

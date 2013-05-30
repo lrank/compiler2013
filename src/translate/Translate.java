@@ -11,7 +11,7 @@ import symbol.Symbol;
 
 public class Translate {
 	public Env env = null;
-	int offset = 0, level = 0;
+	public int offset = 0, level = 0;
 
 	public Translate() {
 		this(new Env());
@@ -99,14 +99,15 @@ public class Translate {
 				Declarator dt = id.initDeclarator.declarator;
 				ty = checkDeclarator(dt, tp);
 				
-				env.vEnv.put(dt.plainDeclarator.sym, new IDEntry(new TID(offset), ty));
-				emit(new Define(new varinfo("ID" + TID.count, ty, offset, level)));
+				env.vEnv.put(dt.plainDeclarator.sym, new IDEntry(new TID(offset), ty, level));
+				varinfo tm = new varinfo("ID" + TID.count, ty, offset, level);
+				emit(new Define(tm));
 				offset += sizeof(ty);
 
 				// = ...
 				if (id.initDeclarator.initializer != null) {
-					
-					//
+					varinfo v = transAssignmentExpression(id.initDeclarator.initializer.assignmentExpression);
+					emit(new InCode(tm, v, "+", new varinfo("#0", Type.INT, 0, level)));
 				}
 				id = id.next;
 			} while (id != null);
@@ -713,13 +714,13 @@ public class Translate {
 			IDEntry e = (IDEntry) en;
 			if (ex.postfixStar == null)
 				return new varinfo(e.to() + "(" + ex.primaryExpression.sym.toString() + ")",
-							Type.INT, e.name.offset, level);
+							Type.INT, e.name.offset, e.lev);
 			else {
 			//
 				varinfo off = getpostfix(e.ty, ex.postfixStar);
 				
 				return new varinfo(e.to() + "(" + ex.primaryExpression.sym.toString() + ")",
-						Type.VOID, off, level);
+						Type.VOID, off, e.lev);
 			}
 		}
 		if (en instanceof PARAEntry) {
@@ -771,7 +772,7 @@ public class Translate {
 			if (!str.contains(t)) {
 				str.add(t);
 			}
-			return new varinfo(t, Type.STRING, ++stringnum, level);
+			return new varinfo(t, Type.STRING, stringnum++, level);
 		}
 		if (ex.expressions instanceof Expression)
 			return transExp((Expression) ex.expressions);

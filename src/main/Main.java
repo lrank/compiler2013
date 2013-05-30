@@ -80,8 +80,8 @@ public class Main {
 
 	public static void main(String argv[]) throws IOException {
 		//compile(pathOf("test.c"));
+		//compile("factor.c");
 		compile("a.c");
-		//compile(argv[0]);
 		System.exit(0);
 	}
 }

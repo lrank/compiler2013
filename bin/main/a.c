@@ -1,19 +1,13 @@
-/**
- * calculate gcd, nothing special
- * by msh
- */
-#include <stdio.h>
-
-int gcd(int x, int y) {
-  if (x%y == 0) return y;
-  else return gcd(y, x%y);
-}
+int a[10][10];
 
 int main() {
-  printf("%d\n%d\n%d\n%d\n",
-    gcd(10,1),
-    gcd(50,35),
-    gcd(34986,3087),
-    gcd(2907,1539));
-  return 0;
+	int i, j;
+	for (i = 1; i < 3; ++i) {
+		for (j = 1; j < 3; ++j) {
+			a[i][j] = i * j;
+			printf("%d ", a[i][j]);
+		}
+		printf("\n");
+	}
+	return 0;
 }

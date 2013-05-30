@@ -9,6 +9,7 @@ import java.util.List;
 import Types.Type;
 
 import translate.*;
+import Types.*;
 
 public class MipsAssemblyWriter {
 
@@ -18,7 +19,7 @@ public class MipsAssemblyWriter {
 
 	public void load(String reg, varinfo v) {
 		if (v.type == Type.STRING) {
-			emit("la %s, str_%d", reg, v.level);
+			emit("la %s, str_%d", reg, v.offset);
 			return;
 		}
 		if (v.name.charAt(0) == '#') {
@@ -53,18 +54,18 @@ public class MipsAssemblyWriter {
 	public void store(String reg, varinfo v) {
 		if (v.level == 0) {
 			if (v.type == Type.VOID) {
-				load(reg, v.off);
-				emit("add %s, $gp, %s", reg, reg);
-				emit("sw %s, %d(%s)", reg, v.offset, reg);
+				load("$t3", v.off);
+				emit("add $t3, $gp, $t3");
+				emit("sw %s, %d($t3)", reg, v.offset);
 			}
 			else
 				emit("sw %s, %d($gp)", reg, v.offset);
 		}
 		else {
 			if (v.type == Type.VOID) {
-				load(reg, v.off);
-				emit("sub %s, $fp, %s", reg, reg);
-				emit("sw %s, %d(%s)", reg, -v.offset, reg);
+				load("$t3", v.off);
+				emit("sub $t3, $fp, $t3");
+				emit("sw %s, %d($t3)", reg, -v.offset);
 			}
 			else
 				emit("sw %s, %d($fp)", reg, -v.offset);
@@ -167,6 +168,13 @@ public class MipsAssemblyWriter {
 		emit("sge $t0, $t1, $t2");
 		emit("sw $t0, %d($fp)", dest.offset);
 	}
+	
+	public void seq(varinfo dest, varinfo src1, varinfo src2) {
+		load("$t1", src1);
+		load("$t2", src2);
+		emit("seq $t0, $t1, $t2");
+		store("$t0", dest);
+	}
 
 	public void emit(Label label) {
 		emit(label.tostring() + ":");
@@ -178,13 +186,17 @@ public class MipsAssemblyWriter {
 
 	public void jz(NotIfcode cond) {
 		load("$t0", cond.t1);
-		emit("bnez $t0, %s", cond.label.tostring());
+		emit("beqz $t0, %s", cond.label.tostring());
 	}
 
 	private List<String> lines = new ArrayList<String>();
 
 	public void IICode(IICode c) {
-		
+		if (c.op == "++") {
+			load("$a1", c.t3);
+			emit("addi $a1, $a1, 1");
+			store("$a1", c.t1);
+		} else emit("%s", c.op);
 	}
 	
 	public void InCode(InCode c) {
@@ -199,7 +211,7 @@ public class MipsAssemblyWriter {
 		else if (c.op == "&&")
 			and(c.t1, c.t2, c.t3);
 		else if (c.op == "==")
-			sub(c.t1, c.t2, c.t3);
+			seq(c.t1, c.t2, c.t3);
 		else if (c.op == "%")
 			rem(c.t1, c.t2, c.t3);
 		else emit("%s", c.op);
@@ -248,9 +260,17 @@ public class MipsAssemblyWriter {
 		emit("sw $t0, -%d($sp)", p * 4);
 		++p;
 	}
-	
+	/*
 	public void Define(Define c) {
-	}
+		if (c.v.level == 0) {
+			emit(".globl data_%s", c.v.name);
+			emit("data_%s:", c.v.name);
+			if (c.v.type instanceof ARRAY)
+				emit(".space %d", ((ARRAY)c.v.type).size * 4);
+			else
+				emit(".space %d", 4);
+		}
+	}*/
 	
 	private void emit(String fmt, Object... objects) {
 		lines.add(String.format(fmt, objects));
@@ -269,17 +289,28 @@ public class MipsAssemblyWriter {
 		return sb.toString();
 	}
 
-	public void emitPrologue(List<String> str) {
+	public void emitPrologue(List<String> str, int o) {
 		emit(".data");
 		int i = 0;
-		for (String s : str)
-			emit("str_%d: .asciiz \"%s\"", ++i, s);
+		for (String s : str) {
+			emit(".globl str_%d", i);
+			emit("str_%d: .asciiz \"%s\"", i++, s);
+		}
+		/*
+		for (Tcode c : list) {
+			if (c instanceof Define)
+				Define((Define) c);
+		}*/
+		emit(".align 2");
+		emit(".globl data_gp");
+		emit("data_gp: .space %d", o);
 		
 		emit(".text");
 		emit(".align 2");
 		emit(".globl main");
 		emit("main:");
-		emit("move $gp, $sp     # set global pointer (unused)");
+		//emit("move $gp, $sp     # set global pointer (unused)");
+		emit("la $gp, data_gp");
 		emit("sw $0, 0($sp)");
 		emit("sw $0, -4($sp)");
 		emit("addi $sp, $sp, -8 # move up a cell");
