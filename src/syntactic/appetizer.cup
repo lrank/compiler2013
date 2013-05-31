@@ -1,11 +1,11 @@
 package syntactic;
 
 import java.io.InputStream;
-import appetizer.ast.*;
+import ast.*;
 
 action code {:
-	static appetizer.symbol.Symbol symbol(String s) {
-		return appetizer.symbol.Symbol.symbol(s);
+	static symbol.Symbol symbol(String s) {
+		return symbol.Symbol.symbol(s);
 	}
 :};
 
@@ -546,5 +546,5 @@ primary_expression ::= ID:x
 constant ::= NUM:x
     {: RESULT = new Num(x.intValue()); :} //integer_constant
   | Char:x
-    {: RESULT = new Char(x.charAt(0)); :} //character_constant
+    {: RESULT = new Char(x); :} //character_constant
   ;

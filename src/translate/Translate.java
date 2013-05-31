@@ -313,16 +313,17 @@ public class Translate {
 	}
 
 	public void transStatement(SelectionStatement s) {
-		Label l = new Label();
+		Label l = new Label(), l2 = new Label();
 		varinfo r = transExp((Expression) s.expressions);
 		
 		emit(new NotIfcode(r, l));
 		transStatement(s.statements1);
-
-		emit(l);
+		emit(new Gotocode(l2));
 		
+		emit(l);
 		if (s.statements2 != null)
 			transStatement(s.statements2);
+		emit(l2);
 	}
 	
 	public void transStatement(IterationWhileStatement s) {
@@ -760,9 +761,31 @@ public class Translate {
 						Type.INT, e.name.offset, level);
 			else {
 			//
-			
-				return new varinfo(e.to() + "(" + ex.primaryExpression.sym.toString() + ")",
-						Type.INT, e.name.offset, level);
+
+				varinfo off = getpostfix(e.ty, ex.postfixStar);
+				varinfo ret = new varinfo(e.to(), Type.VOID, off, e.name.offset, level);
+				
+				PostfixStar p = ex.postfixStar;
+				while (p != null) {
+					if (p.postfix instanceof Postfix) {
+						Postfix post = (Postfix)p.postfix;
+						if (post.op == Postfix.Type.INC) {
+							varinfo tmp = needNew(null);
+							emit(new InCode(ret, ret, "+", new varinfo("#1", Type.INT, offset, level)));
+							emit(new InCode(tmp, ret, "+", new varinfo("#1", Type.INT, offset, level)));
+							return tmp;
+						}
+						if (post.op == Postfix.Type.DEC) {
+							varinfo tmp = needNew(null);
+							emit(new InCode(ret, ret, "-", new varinfo("#1", Type.INT, offset, level)));
+							emit(new InCode(tmp, ret, "-", new varinfo("#1", Type.INT, offset, level)));
+							return tmp;
+						}
+					}
+					p = p.postfixStar;
+				}
+				
+				return ret;
 			}
 		}
 		return null;

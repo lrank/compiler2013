@@ -56,6 +56,7 @@ public class Main {
 		Translate translate = new Translate();
 		translate.transprog(program);
 		
+		//=====
 		//translate.listallCode();
 		//System.out.println("OK!");
 		
@@ -82,7 +83,7 @@ public class Main {
 
 	public static void main(String argv[]) throws IOException {
 		compile(argv[0]);
-		//compile(pathOf("test.c"));
+		//compile("test.c");
 		System.exit(0);
 	}
 }

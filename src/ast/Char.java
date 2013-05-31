@@ -2,9 +2,9 @@ package ast;
 
 public class Char extends Expressions {
 
-	public char charvalue;
+	public String charvalue;
 
-	public Char(char v) {
+	public Char(String v) {
 		charvalue = v;
 	}
 }
