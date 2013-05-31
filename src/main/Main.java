@@ -22,7 +22,7 @@ public class Main {
 		
 		//========================Parsing
 		//System.out.println("====================\nParsing");
-		InputStream inp = new FileInputStream(pathOf(filename));
+		InputStream inp = new FileInputStream(filename);
 		//System.out.println(filename);
 		Parser parser = new Parser(inp);
 		java_cup.runtime.Symbol parseTree = null;
@@ -81,8 +81,8 @@ public class Main {
 	}
 
 	public static void main(String argv[]) throws IOException {
-		//compile(argv[0]);
-		compile("a.c");
+		compile(argv[0]);
+		//compile(pathOf("test.c"));
 		System.exit(0);
 	}
 }
