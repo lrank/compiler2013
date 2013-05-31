@@ -840,20 +840,30 @@ public class Translate {
 	
 	public varinfo transUnaryExpressionToCastExpression(UnaryExpressionToCastExpression ex) {
 		varinfo ret = transCastExpression(ex.castExpression);
-		TRegister k = new TRegister();
-		varinfo u = new varinfo(k.to(), Type.INT, offset, level);
+		varinfo u = null;
 		if (ex.unaryOperator.unaryOperator == UnaryOperator.Type.OPAND)
 			emit(new IICode(u, "&", ret));
-		if (ex.unaryOperator.unaryOperator == UnaryOperator.Type.TIMES)
-			emit(new IICode(u, "*", ret));
+		if (ex.unaryOperator.unaryOperator == UnaryOperator.Type.TIMES) {
+			ret.type = new POINT(ret.type);
+			return ret;
+		}
 		//UnaryOperator.Type.PLUS don't need to be thought
-		if (ex.unaryOperator.unaryOperator == UnaryOperator.Type.MINUS)
+		if (ex.unaryOperator.unaryOperator == UnaryOperator.Type.MINUS) {
+			u = needNew(null);
 			emit(new InCode(u, new varinfo("#0", Type.INT, 0, level), "-", ret));
-		if (ex.unaryOperator.unaryOperator == UnaryOperator.Type.NEGATE)
+			return u;
+		}
+		if (ex.unaryOperator.unaryOperator == UnaryOperator.Type.NEGATE) {
+			u = needNew(null);
 			emit(new IICode(u, "~", ret));
-		if (ex.unaryOperator.unaryOperator == UnaryOperator.Type.NOT)
+			return u;
+		}
+		if (ex.unaryOperator.unaryOperator == UnaryOperator.Type.NOT) {
+			u = needNew(null);
 			emit(new IICode(u, "!", ret));
-		return u;
+			return u;
+		}
+		return ret;
 	}
 	
 	public varinfo transUnaryExpressionToTypeName(UnaryExpressionToTypeName ex) {

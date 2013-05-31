@@ -60,6 +60,23 @@ printf_end:						#roll back
 	add $fp, $sp, $t0
 	jr $31
 
+###########################################
+Label_malloc:
+	sw $31, 4($fp)
+	addi $sp, $sp, -4
+	
+	li $v0, 9
+	syscall
+	
+	addi $sp, $fp, 0
+	lw $t0, 8($sp)
+	lw $31, 4($sp)
+	addi $sp, $sp, 8
+	add $fp, $sp, $t0
+	jr $31
+
+#################################
+
 .data
 printf_buf: .space 2
 	

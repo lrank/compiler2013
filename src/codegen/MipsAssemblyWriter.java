@@ -32,6 +32,12 @@ public class MipsAssemblyWriter {
 				emit("lw %s, 0($t3)", reg);
 			}
 			else {
+				if (v.type instanceof POINT) {
+					emit("la $gp, data_%s", v.name);
+					emit("lw $t3, 0($gp)");
+					emit("lw %s, 0($t3)", reg);
+					return;
+				}
 				emit("la $gp, data_%s", v.name);
 				emit("lw %s, 0($gp)", reg);
 			}
@@ -42,8 +48,14 @@ public class MipsAssemblyWriter {
 				emit("sub $t3, $fp, $t3");
 				emit("lw %s, %d($t3)", reg, -v.offset);
 			}
-			else
+			else {
+				if (v.type instanceof POINT) {
+					emit("lw $t3, %d($fp)", -v.offset);
+					emit("lw %s, 0($t3)", reg);
+					return;
+				}
 				emit("lw %s, %d($fp)", reg, -v.offset);
+			}
 		}
 	}
 	
@@ -56,6 +68,12 @@ public class MipsAssemblyWriter {
 				emit("sw %s, 0($t3)", reg);
 			}
 			else {
+				if (v.type instanceof POINT) {
+					emit("la $gp, data_%s", v.name);
+					emit("lw $t3, 0($gp)");
+					emit("sw %s, 0($t3)", reg);
+					return;
+				}
 				emit("la $gp, data_%s", v.name);
 				emit("sw %s, 0($gp)", reg);
 			}
@@ -67,6 +85,11 @@ public class MipsAssemblyWriter {
 				emit("sw %s, %d($t3)", reg, -v.offset);
 			}
 			else {
+				if (v.type instanceof POINT) {
+					emit("lw $t3, %d($fp)", -v.offset);
+					emit("sw %s, 0($t3)", reg);
+					return;
+				}
 				emit("sw %s, %d($fp)", reg, -v.offset);
 			}
 		}

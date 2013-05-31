@@ -55,7 +55,8 @@ public class Main {
 		//System.out.println("====================\nTranslating");
 		Translate translate = new Translate();
 		translate.transprog(program);
-		translate.listallCode();
+		
+		//translate.listallCode();
 		//System.out.println("OK!");
 		
 		//======================Codegen
