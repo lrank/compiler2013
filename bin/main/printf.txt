@@ -38,6 +38,19 @@ printf_char:
 	li $v0, 4
 	syscall
 	b printf_next
+printf_str:
+	lw $a0, 0($a1)
+	addi $a1, $a1, -4
+	li $v0, 4
+	syscall
+	b printf_next
+printf_perc:
+	la $a0, '%'
+	sb $a0, 0($s6)
+	move $a0, $s6
+	li $v0, 4
+	syscall
+	b printf_next
 
 printf_end:						#roll back
 	addi $sp, $fp, 0

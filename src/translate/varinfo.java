@@ -15,11 +15,12 @@ public class varinfo {
 		level = d;
 	}
 	
-	public varinfo(String a, Type b, varinfo c, int d) {
+	public varinfo(String a, Type b, varinfo c, int s, int d) {
 		name = a;
 		type = b;
 		off = c;
 		level = d;
+		offset = s;
 	}
 	
 	public String tostring() {

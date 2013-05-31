@@ -22,6 +22,8 @@ public class Translate {
 	}
 
 	public List<Tcode> list = new ArrayList<Tcode>();
+	public List<InCode> pre = new ArrayList<InCode>();
+	public List<Define> glo = new ArrayList<Define>();
 	private Stack<Label> stack = new Stack<Label>();
 	public List<String> str = new ArrayList<String>(); 
 	
@@ -102,12 +104,19 @@ public class Translate {
 				env.vEnv.put(dt.plainDeclarator.sym, new IDEntry(new TID(offset), ty, level));
 				varinfo tm = new varinfo("ID" + TID.count, ty, offset, level);
 				emit(new Define(tm));
+				if (level == 0) {
+					glo.add(new Define(tm));
+				}
+				
 				offset += sizeof(ty);
 
 				// = ...
 				if (id.initDeclarator.initializer != null) {
 					varinfo v = transAssignmentExpression(id.initDeclarator.initializer.assignmentExpression);
-					emit(new InCode(tm, v, "+", new varinfo("#0", Type.INT, 0, level)));
+					if (level == 0)
+						pre.add(new InCode(tm, v, "+", new varinfo("#0", Type.INT, 0, level)));
+					else
+						emit(new InCode(tm, v, "+", new varinfo("#0", Type.INT, 0, level)));
 				}
 				id = id.next;
 			} while (id != null);
@@ -713,14 +722,35 @@ public class Translate {
 		if (en instanceof IDEntry) {
 			IDEntry e = (IDEntry) en;
 			if (ex.postfixStar == null)
-				return new varinfo(e.to() + "(" + ex.primaryExpression.sym.toString() + ")",
+				return new varinfo(e.to(),
 							Type.INT, e.name.offset, e.lev);
 			else {
 			//
 				varinfo off = getpostfix(e.ty, ex.postfixStar);
+				varinfo ret = new varinfo(e.to(),
+						Type.VOID, off, e.name.offset, e.lev);
 				
-				return new varinfo(e.to() + "(" + ex.primaryExpression.sym.toString() + ")",
-						Type.VOID, off, e.lev);
+				PostfixStar p = ex.postfixStar;
+				while (p != null) {
+					if (p.postfix instanceof Postfix) {
+						Postfix post = (Postfix)p.postfix;
+						if (post.op == Postfix.Type.INC) {
+							varinfo tmp = needNew(null);
+							emit(new InCode(ret, ret, "+", new varinfo("#1", Type.INT, offset, level)));
+							emit(new InCode(tmp, ret, "+", new varinfo("#1", Type.INT, offset, level)));
+							return tmp;
+						}
+						if (post.op == Postfix.Type.DEC) {
+							varinfo tmp = needNew(null);
+							emit(new InCode(ret, ret, "-", new varinfo("#1", Type.INT, offset, level)));
+							emit(new InCode(tmp, ret, "-", new varinfo("#1", Type.INT, offset, level)));
+							return tmp;
+						}
+					}
+					p = p.postfixStar;
+				}
+				
+				return ret;
 			}
 		}
 		if (en instanceof PARAEntry) {
@@ -755,6 +785,13 @@ public class Translate {
 			}
 			
 			//
+			/*
+			else if (p.postfix instanceof Postfix) {
+				Postfix post = (Postfix)p.postfix;
+				if (post.op == Postfix.Type.INC) {
+					
+				}
+			}*/
 			p = p.postfixStar;
 		}
 		return ret;
@@ -771,8 +808,8 @@ public class Translate {
 			String t = ((SString) ex.expressions).st;
 			if (!str.contains(t)) {
 				str.add(t);
-			}
-			return new varinfo(t, Type.STRING, stringnum++, level);
+				return new varinfo(t, Type.STRING, stringnum++, level);
+			} else return new varinfo(t, Type.STRING, str.indexOf(t), level);
 		}
 		if (ex.expressions instanceof Expression)
 			return transExp((Expression) ex.expressions);

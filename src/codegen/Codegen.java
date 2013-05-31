@@ -17,7 +17,7 @@ public class Codegen {
 	
 	public void gen(Translate tran) {
 		str = tran.str;
-		write.emitPrologue(str, tran.offset);
+		write.emitPrologue(str, tran.pre, tran.glo);
 		list = tran.list;
 		
 		for (Tcode c : list) {

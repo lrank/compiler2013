@@ -6,16 +6,14 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import Types.ARRAY;
+import Types.RECORD;
 import Types.Type;
 
 import translate.*;
 import Types.*;
 
 public class MipsAssemblyWriter {
-
-	public void returnValue(Temp src) {
-		emit("lw $v0, %d($fp)", src.offset);
-	}
 
 	public void load(String reg, varinfo v) {
 		if (v.type == Type.STRING) {
@@ -28,38 +26,39 @@ public class MipsAssemblyWriter {
 		}
 		if (v.level == 0) {
 			if (v.type == Type.VOID) {
-				load(reg, v.off);
-				emit("add %s, $gp, %s", reg, reg);
-				emit("lw %s, %d(%s)", reg, v.offset, reg);
+				load("$t3", v.off);
+				emit("la $gp, data_%s", v.name);
+				emit("add $t3, $gp, $t3");
+				emit("lw %s, 0($t3)", reg);
 			}
-			else
-				emit("lw %s, %d($gp)", reg, v.offset);
+			else {
+				emit("la $gp, data_%s", v.name);
+				emit("lw %s, 0($gp)", reg);
+			}
 		}
 		else {
 			if (v.type == Type.VOID) {
-				load(reg, v.off);
-				emit("sub %s, $fp, %s", reg, reg);
-				emit("lw %s, %d(%s)", reg, -v.offset, reg);
+				load("$t3", v.off);
+				emit("sub $t3, $fp, $t3");
+				emit("lw %s, %d($t3)", reg, -v.offset);
 			}
 			else
 				emit("lw %s, %d($fp)", reg, -v.offset);
 		}
 	}
 	
-	public void store(Temp dest, int src) {
-		emit("li $t0, %d", src);
-		emit("sw $t0, %d($fp)", dest.offset);
-	}
-	
 	public void store(String reg, varinfo v) {
 		if (v.level == 0) {
 			if (v.type == Type.VOID) {
 				load("$t3", v.off);
+				emit("la $gp, data_%s", v.name);
 				emit("add $t3, $gp, $t3");
-				emit("sw %s, %d($t3)", reg, v.offset);
+				emit("sw %s, 0($t3)", reg);
 			}
-			else
-				emit("sw %s, %d($gp)", reg, v.offset);
+			else {
+				emit("la $gp, data_%s", v.name);
+				emit("sw %s, 0($gp)", reg);
+			}
 		}
 		else {
 			if (v.type == Type.VOID) {
@@ -67,8 +66,9 @@ public class MipsAssemblyWriter {
 				emit("sub $t3, $fp, $t3");
 				emit("sw %s, %d($t3)", reg, -v.offset);
 			}
-			else
+			else {
 				emit("sw %s, %d($fp)", reg, -v.offset);
+			}
 		}
 	}
 
@@ -119,26 +119,19 @@ public class MipsAssemblyWriter {
 		store("$t0", dest);
 	}
 
-	public void div(Temp dest, Temp src1, Temp src2) {
-		emit("lw $t1, %d($fp)", src1.offset);
-		emit("lw $t2, %d($fp)", src2.offset);
+	public void div(varinfo dest, varinfo src1, varinfo src2) {
+		load("$t1", src1);
+		load("$t2", src2);
 		emit("div $t0, $t1, $t2");
-		emit("sw $t0, %d($fp)", dest.offset);
+		store("$t0", dest);
 	}
 	
 
-	public void seq(Temp dest, Temp src1, Temp src2) {
-		emit("lw $t1, %d($fp)", src1.offset);
-		emit("lw $t2, %d($fp)", src2.offset);
-		emit("seq $t0, $t1, $t2");
-		emit("sw $t0, %d($fp)", dest.offset);
-	}
-
-	public void sne(Temp dest, Temp src1, Temp src2) {
-		emit("lw $t1, %d($fp)", src1.offset);
-		emit("lw $t2, %d($fp)", src2.offset);
+	public void sne(varinfo dest, varinfo src1, varinfo src2) {
+		load("$t1", src1);
+		load("$t2", src2);
 		emit("sne $t0, $t1, $t2");
-		emit("sw $t0, %d($fp)", dest.offset);
+		store("$t0", dest);
 	}
 
 	public void slt(varinfo dest, varinfo src1, varinfo src2) {
@@ -148,25 +141,25 @@ public class MipsAssemblyWriter {
 		store("$t0", dest);
 	}
 
-	public void sgt(Temp dest, Temp src1, Temp src2) {
-		emit("lw $t1, %d($fp)", src1.offset);
-		emit("lw $t2, %d($fp)", src2.offset);
+	public void sgt(varinfo dest, varinfo src1, varinfo src2) {
+		load("$t1", src1);
+		load("$t2", src2);
 		emit("sgt $t0, $t1, $t2");
-		emit("sw $t0, %d($fp)", dest.offset);
+		store("$t0", dest);
 	}
 
-	public void sle(Temp dest, Temp src1, Temp src2) {
-		emit("lw $t1, %d($fp)", src1.offset);
-		emit("lw $t2, %d($fp)", src2.offset);
+	public void sle(varinfo dest, varinfo src1, varinfo src2) {
+		load("$t1", src1);
+		load("$t2", src2);
 		emit("sle $t0, $t1, $t2");
-		emit("sw $t0, %d($fp)", dest.offset);
+		store("$t0", dest);
 	}
 
-	public void sge(Temp dest, Temp src1, Temp src2) {
-		emit("lw $t1, %d($fp)", src1.offset);
-		emit("lw $t2, %d($fp)", src2.offset);
+	public void sge(varinfo dest, varinfo src1, varinfo src2) {
+		load("$t1", src1);
+		load("$t2", src2);
 		emit("sge $t0, $t1, $t2");
-		emit("sw $t0, %d($fp)", dest.offset);
+		store("$t0", dest);
 	}
 	
 	public void seq(varinfo dest, varinfo src1, varinfo src2) {
@@ -175,7 +168,35 @@ public class MipsAssemblyWriter {
 		emit("seq $t0, $t1, $t2");
 		store("$t0", dest);
 	}
+	
+	public void sll(varinfo dest, varinfo src1, varinfo src2) {
+		load("$t1", src1);
+		load("$t2", src2);
+		emit("sll $t0, $t1, $t2");
+		store("$t0", dest);
+	}
 
+	public void sra(varinfo dest, varinfo src1, varinfo src2) {
+		load("$t1", src1);
+		load("$t2", src2);
+		emit("sra $t0, $t1, $t2");
+		store("$t0", dest);
+	}
+
+	public void or(varinfo dest, varinfo src1, varinfo src2) {
+		load("$t1", src1);
+		load("$t2", src2);
+		emit("or $t0, $t1, $t2");
+		store("$t0", dest);
+	}
+	
+	public void xor(varinfo dest, varinfo src1, varinfo src2) {
+		load("$t1", src1);
+		load("$t2", src2);
+		emit("xor $t0, $t1, $t2");
+		store("$t0", dest);
+	}
+	
 	public void emit(Label label) {
 		emit(label.tostring() + ":");
 	}
@@ -196,6 +217,21 @@ public class MipsAssemblyWriter {
 			load("$a1", c.t3);
 			emit("addi $a1, $a1, 1");
 			store("$a1", c.t1);
+		} else if (c.op == "--") {
+			load("$a1", c.t3);
+			emit("addi $a1, $a1, -1");
+			store("$a1", c.t1);
+		} else if (c.op == "&") {
+			load("$a1", c.t3);
+			emit("lw $a1, 0($a1)");
+			store("$a1", c.t1);
+		} else if (c.op == "*") {
+			load("$a1", c.t3);
+			store("$a1", c.t1);
+		} else if (c.op == "!" || c.op == "~") {
+			load("$a1", c.t3);
+			emit("not $a1, $a1");
+			store("$a1", c.t1);
 		} else emit("%s", c.op);
 	}
 	
@@ -206,14 +242,32 @@ public class MipsAssemblyWriter {
 			sub(c.t1, c.t2, c.t3);
 		else if (c.op == "*")
 			mul(c.t1, c.t2, c.t3);
-		else if (c.op == "<")
-			slt(c.t1, c.t2, c.t3);
-		else if (c.op == "&&")
-			and(c.t1, c.t2, c.t3);
-		else if (c.op == "==")
-			seq(c.t1, c.t2, c.t3);
+		else if (c.op == "/")
+			div(c.t1, c.t2, c.t3);
 		else if (c.op == "%")
 			rem(c.t1, c.t2, c.t3);
+		else if (c.op == "&&" || c.op == "&")
+			and(c.t1, c.t2, c.t3);
+		else if (c.op == "||" || c.op == "|")
+			or(c.t1, c.t2, c.t3);
+		else if (c.op == "^")
+			xor(c.t1, c.t2, c.t3);
+		else if (c.op == "==")
+			seq(c.t1, c.t2, c.t3);
+		else if (c.op == "!=")
+			sne(c.t1, c.t2, c.t3);
+		else if (c.op == "<")
+			slt(c.t1, c.t2, c.t3);
+		else if (c.op == "<=")
+			sle(c.t1, c.t2, c.t3);
+		else if (c.op == ">")
+			sgt(c.t1, c.t2, c.t3);
+		else if (c.op == ">=")
+			sge(c.t1, c.t2, c.t3);
+		else if (c.op == "<<")
+			sll(c.t1, c.t2, c.t3);
+		else if (c.op == ">>")
+			sra(c.t1, c.t2, c.t3);
 		else emit("%s", c.op);
 	}
 	
@@ -289,21 +343,36 @@ public class MipsAssemblyWriter {
 		return sb.toString();
 	}
 
-	public void emitPrologue(List<String> str, int o) {
+	public int sizeof(Type t) {
+		if (t instanceof ARRAY)
+			return ((ARRAY) t).size * sizeof(((ARRAY) t).element);
+		if (t instanceof RECORD)
+			if (((RECORD) t).sou.keyw == "STRUCT")
+				return sizeof(((RECORD) t).fieldType) + sizeof(((RECORD) t).tail);
+		return 4;
+	}
+	
+	public void emitPrologue(List<String> str, List<InCode> pre, List<Define> glo) {
 		emit(".data");
 		int i = 0;
 		for (String s : str) {
 			emit(".globl str_%d", i);
 			emit("str_%d: .asciiz \"%s\"", i++, s);
 		}
-		/*
-		for (Tcode c : list) {
-			if (c instanceof Define)
-				Define((Define) c);
-		}*/
+
 		emit(".align 2");
 		emit(".globl data_gp");
-		emit("data_gp: .space %d", o);
+		
+		emit("data_gp:");
+		
+		for (Define c : glo) {
+			emit(".globl data_%s", c.v.name);
+			int o = 4;
+			if (c.v.type instanceof ARRAY)
+				o = sizeof((ARRAY) c.v.type);
+			emit("data_%s: .space %d", c.v.name, o);
+		}
+			
 		
 		emit(".text");
 		emit(".align 2");
@@ -315,6 +384,11 @@ public class MipsAssemblyWriter {
 		emit("sw $0, -4($sp)");
 		emit("addi $sp, $sp, -8 # move up a cell");
 		emit("move $fp, $sp     # start using memory here");
+		
+		for (InCode c : pre) {
+			InCode(c);
+		}
+		
 		emit("jal Label_main");
 		emit("end_main:");
 		emit("li $v0, 10        # exit");

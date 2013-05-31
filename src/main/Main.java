@@ -21,9 +21,9 @@ public class Main {
 	private static void compile(String filename) throws IOException {
 		
 		//========================Parsing
-		System.out.println("====================\nParsing");
+		//System.out.println("====================\nParsing");
 		InputStream inp = new FileInputStream(pathOf(filename));
-		System.out.println(filename);
+		//System.out.println(filename);
 		Parser parser = new Parser(inp);
 		java_cup.runtime.Symbol parseTree = null;
 		try {
@@ -35,12 +35,12 @@ public class Main {
 		} finally {
 			inp.close();
 		}
-		idPrint.toprint();
+		//idPrint.toprint();
 		Program program = (Program) parseTree.value;
-		System.out.println("OK!");
+		//System.out.println("OK!");
 		
 		//======================Semantics
-		System.out.println("====================\nSemantics Checking");
+		//System.out.println("====================\nSemantics Checking");
 		Semant semant = new Semant();
 		semant.checkProg(program);
 		if (semant.hasError()) {
@@ -48,19 +48,20 @@ public class Main {
 			System.exit(1);
 			return;
 		} else {
-			System.out.println("OK!");
+		//	System.out.println("OK!");
 		}
 		
 		//======================translator
-		System.out.println("====================\nTranslating");
+		//System.out.println("====================\nTranslating");
 		Translate translate = new Translate();
 		translate.transprog(program);
 		translate.listallCode();
-		System.out.println("OK!");
+		//System.out.println("OK!");
 		
 		//======================Codegen
-		System.out.println("====================\nCodegen");
-		PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename + ".s")));
+		//System.out.println("====================\nCodegen");
+		//PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename + ".s")));
+		PrintStream out = System.out;
 		Codegen codegen = new Codegen();
 		codegen.gen(translate);
 		//System.out.println(codegen.tostring());
@@ -79,8 +80,7 @@ public class Main {
 	}
 
 	public static void main(String argv[]) throws IOException {
-		//compile(pathOf("test.c"));
-		//compile("factor.c");
+		//compile(argv[0]);
 		compile("a.c");
 		System.exit(0);
 	}
