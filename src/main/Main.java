@@ -82,8 +82,8 @@ public class Main {
 	}
 
 	public static void main(String argv[]) throws IOException {
-		compile(argv[0]);
-		//compile("test.c");
+		//compile(argv[0]);
+		compile("test.c");
 		System.exit(0);
 	}
 }

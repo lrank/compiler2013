@@ -44,15 +44,16 @@ Compiler2013, C-like language, MIPS assembler
 \section{Introduction}
 
     \subsection{Background}
-    This is my sophomore year in ACM 11, and conventionally, we wound be taught a class entitled 'Compiler Principles, Techniques and Tools'.
-    However, we did not have this class this semester, and this class was substituted by a experiment project, in which we need to finish a project of compiler that I mentioned in the abstract.
+    This is my sophomore year in ACM 11, and conventionally, we wound be taught a class entitled 'Compiler Principles, Techniques and Tools' with a experiment project, in which we need to finish a project of compiler that I mentioned in the abstract.
+    This year, the compiler class is canceled this semester.
+    However, the project is reserved by some reason.
     In another word, we only had to consult TAs who were in charge of this project on everything we would ask about.
 
     In fact, these TAs are excellent teachers for me because of their professional knowledge and their jobs.
 
     \subsection{Programming Environment}
     The core of this project is implement.
-    So, programming environment are given:
+    So, programming environment is given:
 
     I chose the programming language of JAVA, (C or C++ could be ok, but it could make the project a little more difficult than JAVA), and I use ECLIPSE Juno as my platform with JAVA SE 1.6 inside.
 
@@ -182,23 +183,25 @@ Compiler2013, C-like language, MIPS assembler
     \subsection{Access to Variables}
     At first, I chose to put both global and local variables in the stack.
     This is available.
-    However, considering the limit of stack and the easy access of global variable, I changed it and put the global ones out of the stack.
-    There are no great differences.
+    But, at last considering the limit of stack and the easy access of global variable, I changed it and put the global ones out of the stack.
+    However, there are no great differences.
+    When it come to me, that when a variable need a very large space, such as an array, it could be unable to access the variable by 'load or store \$d, (im)\$s', where the im is limited in scale, I chose to set a label for every global variables for easy access.
+    Therefore, I separated the global and local variables in memory, where the local ones will be put in stack.
 
     Stack organization is a important part of codegen.
     Calling a function will cause use of the stack.
-    The size of stack the \$fp - \$sp + 8.
+    Table 1 gives a diagram of a stack use caused by a function-calling.
 
 \begin{table}[htbp]
   \centering
-  \caption{Stack}
+  \caption{Layout of the stack}
     \begin{tabular}{c}
+    \hline
+    Old function (Higher memory address) \\
     \hline\hline
-    Function return value \\
+    Function return value (\$fp + 4) \\
     \hline
-    Stack size of this function \\
-    \hline
-    Parameter 1 (\$fp here) \\
+    Parameter 1 (\$fp) \\
     Parameter 2 \\
     $\dots $ \\
     Parameter n \\
@@ -206,11 +209,18 @@ Compiler2013, C-like language, MIPS assembler
     Local variable 1 \\
     Local variable 2 \\
     $\dots$ \\
-    Local variable m (\$sp here) \\
+    Local variable m (\$sp calculated = \$fp - (n + m) $\times$ 4) \\
+    \hline
+    Size of this function in stack (\$sp - 4) \\
+    \hline
+    \hline
+    New function (Lower memory address) \\
     \hline
     \end{tabular}%
   \label{tab:addlabel}%
 \end{table}%
+
+    As we seen, the size of stack the \$fp - \$sp + 8 bits.
 
     You can choose to store the address in the stack and put the value in the heap or global memory.
     I think it has advantages when it is involved the point operation.
@@ -245,13 +255,13 @@ Compiler2013, C-like language, MIPS assembler
 
     \subsection{Printf Design}
     Standard functions such as malloc and printf need to be designed by ourselves.
-    Function malloc is not difficult and I pass it.
-    So, I only show the details of design of the function printf:
+    Function malloc is not difficult and I will pass it.
+    I only show the details of design of the function printf:
 
     Considered the performance of the code, I wrote it in MIPS completely by hand.
     \begin{enumerate}
-        \item parameters copy, this is no different with calling other function, in which the first parameter is a string.
-        \item check every digit of the string and print the parameter if matched by \%, or print the current digit if not.
+        \item parameters copy, this is no different with calling other function, in which the first parameter is a string, which is store with the global variable as a string constant.
+        \item check every char of the string one by one and print the parameter if matched by \%, or print the current char if not.
             When matched the 0, printf ends and return;
         \item In MIPS, we have print\_int and print\_str.
             So, how to print a char?
@@ -266,7 +276,7 @@ Compiler2013, C-like language, MIPS assembler
      Considering my poor time and that to pass the testcases has the highest priority, I only finish the random register allocation, which does not preform very well.
 
     Graph coloring is a little trouble to write.
-    
+
     Linear scan is a good choice because it is quite easy to understand and to practise.
 
 \section{Bonus}
@@ -284,10 +294,6 @@ Compiler2013, C-like language, MIPS assembler
             Actually, it worked somehow though I did not do enough tests.
             Unfortunately, I just considered it as an alpha version, and it did not appear in my last version.
 
-        \item{Compilation to Intel x86 or JVM}
-
-            Not really hard work, but still very troublesome.
-
         \item{Garbage collection}
 
             Once I took it seriously, but I found myself can not make a complete garbage collection because of the abuse of pointer in this C-like language.
@@ -298,28 +304,39 @@ Compiler2013, C-like language, MIPS assembler
             But if I face a JAVA-like language, I think I am competent to this job.
 
         \item{Optimization}
-        
+
             All of the optimizations are mentioned before.
+            I have not done much about it.
 
         \item{Refine Wikipedia or translate into Chinese}
 
             Underworking.
             I will keep refining it and put the result on the my Github.
-        
+            Maybe the article is not display well because of the coding is different in Windows where I wrote them.
+
         \item{User-friendly error information display}
-        
+
             If a input go wrong, I can show whether the error is caused by the grammar, or by the semantic.
             Both of them can show the wrong position of grammar or semantic.
-            
+
             It is easy to achieve that.
             Merely record the positions of every tokens when parsing.
             Then, print the types of errors and their position after grammar and semantic checking.
 
     \end{itemize}
 
+\section{Failure}
+    Actually, I have not done this job well.
+    I found this bugs in my program, I am sorry that I did not have time to modified them.
+    \begin{enumerate}
+        \item Printf module can not support well.
+        \item Pointer processing problem.
+            I have not released Pointer and Array are the same thing in C program, that made it down.
+    \end{enumerate}
+
 \section{Impressions and Feelings}
 
-    This project named compiler 2013 is biggest project that I have even write.
+    This project named compiler 2013 is biggest project that I have even written.
     I really impressed on it and learned a lot, not only the knowledge of compiler, C-language, code writing and etc, but also some of corporation, hardworking and life.
 
     \begin{enumerate}

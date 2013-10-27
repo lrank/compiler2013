@@ -1,80 +1,68 @@
 #include <stdio.h>
 
-int plus(int SIZE, int* a, int* b, int* c){
-    int add, j;
-    add = 0;
-    j = 0;
-    while (j < SIZE){
-        c[j] = a[j] + b[j] + add;     
-        add = 0;
-        if (c[j] > 9)  {
-            c[j] = c[j] - 10;
-            add = 1;
-        }
-        j=j+1;
-    }
-    if (add > 0) {
-        c[j] = 1;
-        return j;
-    }
-    else return j - 1;
+int check(int a, int N) {
+    return ((a < N) && (a >= 0));
 }
 
-int printIntA(int L, int* a) {  
-    while (L >= 0) {
-        printf("%d", a[L]);
-        L=L-1;
+int addList(int x, int y, int N, int** step, int* tail, int* ok, int* now, int* xlist, int* ylist, int targetx, int targety) {
+    if (check(x, N) == 1 && check(y, N) == 1 && step[x][y] == -1) {
+        tail[0] = tail[0] + 1;
+        xlist[tail[0]] = x;
+        ylist[tail[0]] = y;
+        step[x][y] = now[0] + 1;
+        if ((x == targetx) && (y == targety)) ok[0] = 1;
     }
-    printf("\n");
-}
-
-int printIntB(int L, int* b) {
-    while (L >= 0) {
-        printf("%d", b[L]);
-        L=L-1;
-    }
-    printf("\n");
-}
-  
-int printBigInt(int L, int* c) {
-    while (L >= 0) {
-        printf("%d", c[L]);
-        L=L-1;
-    }
-    printf("\n");
 }
 
 int main() {
-    int SIZE;
-    int* a;
-    int* b;
-    int* c;
-    int L, i;
-  
-    SIZE = 15;
-    a = malloc(SIZE * sizeof(int));
-    for (i = 0; i < SIZE; i = i + 1)
-        a[i] = 0;
-    b = malloc(SIZE * sizeof(int));
-    for (i = 0; i < SIZE; i = i + 1)
-        b[i] = 0;
-    c = malloc(2 * SIZE * sizeof(int));
-    for (i = 0; i < 2 * SIZE; i = i + 1)
-        c[i] = 0;
-
-    L = 0;
+    int N;
+    int head, startx, starty;
+    int targetx, targety;
+    int x, y;
+    int *xlist, *ylist, *tail, *ok, *now;
+    int **step;
+    int i, j;
     
-    for (i = 0; i < SIZE; i = i + 1) {
-        if (i < 9) a[i]=i+1;
-        else a[i] = i-9;
+    N = 100;
+    tail = malloc(1 * sizeof(int));
+    ok = malloc(1 * sizeof(int));
+    now = malloc(1 * sizeof(int));
+    head = tail[0] = startx = starty = 0;
+    targetx = targety  = N - 1;
+    x = y = 0;
+    now[0] = ok[0] = 0;
+    xlist = malloc(N * N * sizeof(int));
+    for (i = 0; i < N * N; i = i + 1)
+        xlist[i] = 0;
+    ylist = malloc(N * N * sizeof(int));
+    for (i = 0; i < N * N; i = i + 1)
+        ylist[i] = 0;
+    step = malloc(N * sizeof(int*));
+    for (i = 0; i < N; i =  i + 1) {
+        step[i] = malloc(N * sizeof(int));
+        for (j = 0; j < N; j = j + 1)
+        step[i][j] = -1;
+    
     }
-    printIntA(SIZE-1, a);
-    for (i = 0; i < SIZE; i = i + 1) {
-        if (i < SIZE / 2) b[i] = 7;
-        else b[i] = 3;
+    xlist[0] = startx;
+    ylist[0] = starty;
+    step[startx][starty] == 0;
+    while (head <= tail[0]) {
+        x = xlist[head];
+        y = ylist[head];
+        now[0] = step[x][y];
+        addList(x-1, y-2, N, step, tail, ok, now, xlist, ylist, targetx, targety);
+        addList(x-1, y+2, N, step, tail, ok, now, xlist, ylist, targetx, targety);
+        addList(x+1, y-2, N, step, tail, ok, now, xlist, ylist, targetx, targety);
+        addList(x+1, y+2, N, step, tail, ok, now, xlist, ylist, targetx, targety);
+        addList(x-2, y-1, N, step, tail, ok, now, xlist, ylist, targetx, targety);
+        addList(x-2, y+1, N, step, tail, ok, now, xlist, ylist, targetx, targety);
+        addList(x+2, y-1, N, step, tail, ok, now, xlist, ylist, targetx, targety);
+        addList(x+2, y+1, N, step, tail, ok, now, xlist, ylist, targetx, targety);
+        if (ok[0] == 1) break;
+        head = head + 1;
     }
-    printIntB(SIZE-1, b);
-    L = plus(SIZE, a, b, c);
-    printBigInt(L, c);
+    if (ok[0] == 1) printf("%d", step[targetx][targety]);
+    else printf("no solution!");
     return 0;
 }
